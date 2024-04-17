@@ -33,11 +33,11 @@ enabled=1
 
 
 [assistant]
-xmlrpc_url=https://subscribe.linhome.org/flexisip-account-manager/linhome/xmlrpc.php
+xmlrpc_url=https://subscribe-staging.linhome.org/flexisip-account-manager/linhome/xmlrpc.php
 ; MD5 / SHA-256
 password_algo=MD5
 domain=sip.linhome.org
-freesip_url=https://subscribe.linhome.org/login
+freesip_url=https://subscribe-staging.linhome.org/login
 
 [rtp]
 audio_rtp_port=-1
@@ -53,7 +53,7 @@ reg_expires=31536000
 
 [account_creator]
 backend=1
-url=https://subscribe.linhome.org/api/
+url=https://subscribe-staging.linhome.org/api/
 account_creation_token_retry_minutes=60
 
 

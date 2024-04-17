@@ -112,7 +112,7 @@ object DeviceStore {
             core.config?.setString(
                 "misc",
                 "contacts-vcard-list",
-                "https://subscribe.linhome.org/contacts/vcard"
+                "https://subscribe-staging.linhome.org/contacts/vcard"
             )
             core.config?.sync()
             core.stop()
