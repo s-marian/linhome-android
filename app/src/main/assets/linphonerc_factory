@@ -43,6 +43,7 @@ freesip_url=https://subscribe.linhome.org/login
 [rtp]
 audio_rtp_port=-1
 video_rtp_port=-1
+accept_bundle=0
 
 [misc]
 max_calls=1

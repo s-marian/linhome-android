@@ -42,9 +42,9 @@ fun Call.extendedAcceptEarlyMedia() {
         val earlyMediaCallParams: CallParams? = coreContext.core.createCallParams(this)
         earlyMediaCallParams?.recordFile = callLog.historyEvent().mediaFileName
         isCameraEnabled = false
+        earlyMediaCallParams?.isAudioEnabled = false
         acceptEarlyMediaWithParams(earlyMediaCallParams)
         GlobalScope.launch(context = Dispatchers.Main) {
-            muteAudioPLayBack()
             startRecording()
         }
     }
@@ -60,7 +60,7 @@ fun Call.extendedAccept() {
     val inCallParams: CallParams? = coreContext.core.createCallParams(this)
     inCallParams?.recordFile = callLog.historyEvent().mediaFileName
     isCameraEnabled = false
-    unMuteAudioPLayBack()
+    inCallParams?.isAudioEnabled = true
     val device = DeviceStore.findDeviceByAddress(remoteAddress)
     if (device != null) {
         coreContext.core.useRfc2833ForDtmf = device.actionsMethodType == "method_dtmf_rfc_4733"
@@ -73,14 +73,4 @@ fun Call.extendedAccept() {
     acceptWithParams(inCallParams)
     if (!isRecording)
         startRecording()
-}
-
-
-// Early media phase - work around to avoid playing audio back to user, but still have the stream
-fun Call.muteAudioPLayBack() {
-    speakerVolumeGain = -1000.0f
-}
-
-fun Call.unMuteAudioPLayBack() {
-    speakerVolumeGain = 0.0f
 }
