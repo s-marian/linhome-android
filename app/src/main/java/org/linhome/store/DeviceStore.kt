@@ -58,17 +58,35 @@ object DeviceStore {
     var mutableDevices: MutableLiveData<ArrayList<Device>>? = null
     var syncFailed: MutableLiveData<Boolean>? = null
 
+    /**
+     * Checks if there is a Linhome account configured (account domain matches loginDomain).
+     * Excludes push gateway accounts from the check.
+     */
+    private fun hasLinhomeAccount(): Boolean {
+        val core = LinhomeApplication.coreContext.core
+        val nonPushAccounts = core.accountList.filter { it.params?.idkey != LinhomeAccount.PUSH_GW_ID_KEY }
+        if (nonPushAccounts.isEmpty()) {
+            return false
+        }
+        return nonPushAccounts.first()?.params?.domain == LinhomeApplication.corePreferences.loginDomain
+    }
+
     private val  serverFriendListListener: FriendListListenerStub = object : FriendListListenerStub() {
         override fun onSyncStatusChanged(
             friendList: FriendList,
             status: FriendList.SyncStatus?,
             message: String?
         ) {
-            Log.i("[DeviceStore] remote list onSyncStatusChanged ${friendList.displayName} ${status} ${message}")
+            Log.i("[DeviceStore] >>>>>>>> onSyncStatusChanged: ${friendList.displayName} status=${status} message=${message} <<<<<<<<")
+            Log.i("[DeviceStore] serverFriendList is set: ${serverFriendList != null}")
+            Log.i("[DeviceStore] syncFailed LiveData is set: ${syncFailed != null}")
+            
             if (status == FriendList.SyncStatus.Successful) {
+                Log.i("[DeviceStore] Sync successful, reading devices")
                 readDevicesFromFriends()
             }
             if (status == FriendList.SyncStatus.Failure) {
+                Log.i("[DeviceStore] Sync FAILED - setting syncFailed to true")
                 syncFailed?.value = true
             }
         }
@@ -78,18 +96,25 @@ object DeviceStore {
     private val coreListener: CoreListenerStub = object : CoreListenerStub() {
 
         override fun onGlobalStateChanged(core: Core, state: GlobalState?, message: String) {
+            Log.i("[DeviceStore] >>>>>>>> onGlobalStateChanged: state=${state} message=${message} <<<<<<<<")
             if (state == GlobalState.On) {
+                Log.i("[DeviceStore] Core state is ON")
                 core.friendsDatabasePath = LinhomeApplication.instance.applicationContext.filesDir.absolutePath+"/devices.db"
                 if (core.getFriendListByName(local_devices_fl_name) == null) {
+                    Log.i("[DeviceStore] Creating local friend list")
                     val localDevicesFriendList = core.createFriendList()
                     localDevicesFriendList?.displayName = local_devices_fl_name
                     core.addFriendList(localDevicesFriendList)
+                } else {
+                    Log.i("[DeviceStore] Local friend list already exists")
                 }
             }
             GlobalScope.launch(context = Dispatchers.Main) { // Leave one cycle to the core to create the friend list
                 if (!storageMigrated) {
+                    Log.i("[DeviceStore] Storage not migrated, calling migrateFromXmlStorage")
                     migrateFromXmlStorage()
                 } else {
+                    Log.i("[DeviceStore] Storage already migrated, calling readDevicesFromFriends")
                     readDevicesFromFriends()
                 }
             }
@@ -100,13 +125,19 @@ object DeviceStore {
             }
         }
         override fun onFriendListCreated(core: Core, friendList: FriendList) {
-            Log.i("[DeviceStore] friend list created. ${friendList.displayName}")
+            // Only set up server friend list if a Linhome account is configured
             if (corePreferences.vcardListUrl.equals(friendList.displayName) && serverFriendList == null) {
-                serverFriendList = friendList
-                friendList.addListener(serverFriendListListener)
+                if (hasLinhomeAccount()) {
+                    Log.i("[DeviceStore] Linhome account detected, setting up server friend list")
+                    serverFriendList = friendList
+                    friendList.addListener(serverFriendListListener)
+                } else {
+                    Log.i("[DeviceStore] No Linhome account detected, removing server friend list")
+                    // Remove the friend list since we don't need it
+                    core.removeFriendList(friendList)
+                }
             }
             if (core.globalState == GlobalState.On) {
-                Log.i("[DeviceStore] friend list created. ${friendList.displayName}")
                 readDevicesFromFriends()
             }
         }
@@ -138,14 +169,11 @@ object DeviceStore {
     }
 
     fun fetchVCards() {
-        Log.i("[DeviceStore] fetchVCards")
         val core = LinhomeApplication.coreContext.core
-        val isLinhomeAccount =
-            !core.accountList.filter { it.params?.idkey != LinhomeAccount.PUSH_GW_ID_KEY }
-                .isEmpty() && core.accountList.filter { it.params?.idkey != LinhomeAccount.PUSH_GW_ID_KEY }
-                .first()?.params?.domain == LinhomeApplication.corePreferences.loginDomain
-        if (isLinhomeAccount) {
-            Log.i("[DeviceStore] fetching vCards")
+        
+        // Only fetch vCards if a Linhome account is configured
+        if (hasLinhomeAccount()) {
+            Log.i("[DeviceStore] Linhome account detected, fetching vCards")
             core.config?.setString(
                 "misc",
                 "contacts-vcard-list",
@@ -154,8 +182,9 @@ object DeviceStore {
             core.config?.sync()
             core.stop()
             core.start()
-        } else
-            Log.i("[DeviceStore] No vards to fetch, as account not from the main domain ${LinhomeApplication.corePreferences.loginDomain}")
+        } else {
+            Log.i("[DeviceStore] No Linhome account detected, skipping vCard fetch")
+        }
     }
 
     init {
