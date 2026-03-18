@@ -1,10 +1,10 @@
-
 buildscript {
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
+        // Your current versions
         classpath 'com.android.tools.build:gradle:8.13.0'
         classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.20'
         classpath 'com.google.gms:google-services:4.4.3'
@@ -13,9 +13,6 @@ buildscript {
     }
 }
 
+// Keep this block empty for now as settings.gradle handles repositories
 allprojects {
-    repositories {
-        google()
-        mavenCentral()
-    }
 }
