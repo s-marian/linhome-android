@@ -40,6 +40,8 @@ class BootReceiver : BroadcastReceiver() {
         } else if (intent.action.equals(Intent.ACTION_BOOT_COMPLETED, ignoreCase = true)) {
             val autoStart = corePreferences.autoStart
             Log.i("[Boot Receiver] Device is starting, autoStart is $autoStart")
+            
+            // Start CoreService if autoStart is enabled
             if (autoStart) {
                 serviceIntent.putExtra("StartForeground", true)
                 ContextCompat.startForegroundService(context, serviceIntent)

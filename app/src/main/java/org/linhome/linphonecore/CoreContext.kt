@@ -50,8 +50,10 @@ import org.linhome.notifications.NotificationsManager
 import org.linhome.ui.call.CallInProgressActivity
 import org.linhome.ui.call.CallIncomingActivity
 import org.linhome.ui.call.CallOutgoingActivity
+import org.linhome.ui.call.CallOverlayManager
 import org.linhome.utils.DialogUtil
 import org.linphone.compatibility.PhoneStateInterface
+import org.linphone.core.Address
 import org.linphone.core.AudioDevice
 import org.linphone.core.Call
 import org.linphone.core.Config
@@ -93,6 +95,10 @@ class CoreContext(
 
     val notificationsManager: NotificationsManager by lazy {
         NotificationsManager(context)
+    }
+
+    private val callOverlayManager: CallOverlayManager by lazy {
+        CallOverlayManager(context)
     }
 
     private var overlayX = 0f
@@ -154,9 +160,14 @@ class CoreContext(
                     }
                 }
 
-                // Starting SDK 24 (Android 7.0) we rely on the fullscreen intent of the call incoming notification
-                if (Version.sdkStrictlyBelow(Version.API24_NOUGAT_70) || LinhomeApplication.someActivityRunning) {
-                    onIncomingReceived(call)
+                // Show incoming call overlay if enabled and permission granted
+                if (corePreferences.showIncomingCallOverlay && callOverlayManager.hasPermission()) {
+                    callOverlayManager.showIncomingCall(call)
+                } else {
+                    // Fall back to notification if overlay is not enabled or permission not granted
+                    if (Version.sdkStrictlyBelow(Version.API24_NOUGAT_70) || LinhomeApplication.someActivityRunning) {
+                        onIncomingReceived(call)
+                    }
                 }
 
                 if (corePreferences.autoAnswerEnabled) {
@@ -198,6 +209,7 @@ class CoreContext(
 
                     removeCallOverlay()
                 }
+                callOverlayManager.hideIncomingCall()
             }
             if (state == Call.State.Error && call.callLog?.dir == Call.Dir.Outgoing) {
                 GlobalScope.launch(context = Dispatchers.Main) {
@@ -306,12 +318,10 @@ class CoreContext(
     }
 
     fun transferCallTo(addressToCall: String) {
-        val currentCall = core.currentCall ?: core.calls.first()
-        if (currentCall == null) {
-            Log.e("[Context] Couldn't find a call to transfer")
-        } else {
-            Log.i("[Context] Transferring current call to $addressToCall")
-            currentCall.transfer(addressToCall)
+        Log.i("[Context] Transferring call to $addressToCall")
+        core.currentCall?.let {
+            val address = Factory.instance().createAddress(addressToCall)!!
+            it.transferTo(address)
         }
     }
 
@@ -462,5 +472,13 @@ class CoreContext(
         } else {
             Log.w("[Context] Can't create phone state listener, READ_PHONE_STATE permission isn't granted")
         }
+    }
+
+    fun getOverlaySettingsIntent(): Intent {
+        return callOverlayManager.getOverlaySettingsIntent()
+    }
+
+    fun isOverlayPermissionGranted(): Boolean {
+        return callOverlayManager.hasPermission()
     }
 }

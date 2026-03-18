@@ -25,6 +25,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import androidx.lifecycle.Observer
@@ -248,6 +249,45 @@ class SettingsFragment : GenericFragment() {
             org.linphone.core.tools.Log.e("[RingtonePicker] Error copying ringtone file: ${e.message}")
             org.linhome.utils.DialogUtil.error("ringtone_copy_failed")
         }
+    }
+
+    val incomingCallOverlayListener = object : SettingListenerStub() {
+        override fun onBoolValueChanged(newValue: Boolean) {
+            // Always save the value first
+            LinhomeApplication.corePreferences.showIncomingCallOverlay = newValue
+            if (newValue) {
+                // Check if overlay permission is granted
+                if (!LinhomeApplication.coreContext.isOverlayPermissionGranted()) {
+                    // Permission not granted, show dialog and revert the toggle
+                    showOverlayPermissionDialog()
+                    // Revert the setting
+                    LinhomeApplication.corePreferences.showIncomingCallOverlay = false
+                }
+            }
+        }
+
+        override fun onClicked() {
+            if (!LinhomeApplication.coreContext.isOverlayPermissionGranted()) {
+                showOverlayPermissionDialog()
+            }
+        }
+    }
+
+    private fun showOverlayPermissionDialog() {
+        val context = requireContext()
+        androidx.appcompat.app.AlertDialog.Builder(context)
+            .setTitle(R.string.overlay_permission_required)
+            .setMessage(R.string.overlay_permission_message)
+            .setPositiveButton(R.string.grant_permission) { dialog, _ ->
+                // Launch the overlay permission settings
+                val intent = LinhomeApplication.coreContext.getOverlaySettingsIntent()
+                startActivity(intent)
+                dialog.dismiss()
+            }
+            .setNegativeButton(R.string.cancel) { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
     }
 
 

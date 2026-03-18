@@ -115,6 +115,14 @@ class NotificationsManager(private val context: Context) {
             if (call == null) return
             Log.i("[Notifications Manager] Call state changed [$state]")
 
+            // Skip notification if overlay is enabled and permission is granted
+            if ((state == Call.State.IncomingEarlyMedia || state == Call.State.IncomingReceived)
+                && corePreferences.showIncomingCallOverlay
+                && coreContext.isOverlayPermissionGranted()
+            ) {
+                return
+            }
+
             when (state) {
                 Call.State.IncomingEarlyMedia, Call.State.IncomingReceived -> displayIncomingCallNotification(
                     call

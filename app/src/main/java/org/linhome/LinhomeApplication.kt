@@ -120,7 +120,10 @@ class LinhomeApplication : Application() {
         instance = this
         Customisation
         Texts
-        ensureCoreExists(applicationContext)
+        // Pre-initialize core immediately for instant startup
+        // force=true ensures initialization happens even if coreContext exists
+        // startService=false avoids starting foreground service on cold start
+        ensureCoreExists(applicationContext, force = true, startService = false)
         Compatibility.setupAppStartupListener(applicationContext)
         DeviceStore
     }

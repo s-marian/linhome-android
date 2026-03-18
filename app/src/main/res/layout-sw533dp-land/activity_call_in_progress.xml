@@ -95,13 +95,13 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_below="@+id/chunk_call_name_address"
-            app:layout_constraintTop_toBottomOf="@+id/chunk_call_name_address"
+            android:gravity="center"
             app:layout_constraintBottom_toTopOf="@+id/actions_and_controls"
+            app:layout_constraintDimensionRatio="H,4:3"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintDimensionRatio="H,4:3"
-            app:layout_constraintWidth_percent="0.85"
-            android:gravity="center">
+            app:layout_constraintTop_toBottomOf="@+id/chunk_call_name_address"
+            app:layout_constraintWidth_percent="0.85">
 
             <include
                 android:id="@+id/chunk_call_device_icon_or_video"
@@ -109,7 +109,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 bind:callmodel="@{callmodel}"
-                bind:incomingView="@{false}"/>
+                bind:incomingView="@{false}" />
         </LinearLayout>
 
 
@@ -123,11 +123,12 @@
             android:layout_height="wrap_content">
 
             <LinearLayout
-                android:layout_weight="1"
                 android:id="@+id/controls"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="300dp"
+                android:layout_weight="1"
                 android:gravity="center">
+
                 <include
                     layout="@layout/chunk_call_in_progress_controls"
                     android:layout_width="match_parent"
@@ -136,11 +137,12 @@
             </LinearLayout>
 
             <LinearLayout
-                android:layout_weight="1"
                 android:id="@+id/actions"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="300dp"
+                android:layout_weight="1"
                 android:gravity="center">
+
                 <include
                     layout="@layout/chunk_call_in_progress_actions"
                     android:layout_width="match_parent"

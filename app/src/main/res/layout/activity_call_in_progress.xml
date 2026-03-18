@@ -95,13 +95,16 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_below="@+id/chunk_call_name_address"
-            app:layout_constraintTop_toBottomOf="@+id/chunk_call_name_address"
+            android:gravity="center"
             app:layout_constraintBottom_toTopOf="@+id/actions"
+            app:layout_constraintDimensionRatio="4:3"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintDimensionRatio="H,4:3"
-            app:layout_constraintWidth_percent="0.85"
-            android:gravity="center">
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/chunk_call_name_address"
+            app:layout_constraintWidth_percent="0.9">
 
             <include
                 android:id="@+id/chunk_call_device_icon_or_video"
@@ -109,18 +112,21 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 bind:callmodel="@{callmodel}"
-                bind:incomingView="@{false}"/>
+                bind:incomingView="@{false}" />
         </LinearLayout>
+
 
         <LinearLayout
             android:id="@+id/actions"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_above="@+id/controls"
+            android:layout_marginBottom="24dp"
+            android:gravity="center"
             app:layout_constraintBottom_toTopOf="@+id/controls"
-            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            android:gravity="center">
+            app:layout_constraintStart_toStartOf="parent">
 
             <include
                 layout="@layout/chunk_call_in_progress_actions"
@@ -129,7 +135,6 @@
                 android:visibility="@{callmodel.device.actions.size() > 0 ? View.VISIBLE : View.GONE}"
                 bind:callmodel="@{callmodel}" />
         </LinearLayout>
-
 
         <LinearLayout
             android:id="@+id/controls"
