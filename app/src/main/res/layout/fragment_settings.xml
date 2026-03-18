@@ -93,6 +93,12 @@
             listener="@{model.enableBackgroundMode}"
             checked="@={model.backgroundModeEnabled}"/>
 
+        <include
+            layout="@layout/settings_widget_basic"
+            title='@{model.getText("settings_ringtone")}'
+            subtitle="@{model.ringtonePath}"
+            listener="@{view.ringtonePathListener}"
+            subsection="@{true}"/>
 
     </LinearLayout>
     </ScrollView>

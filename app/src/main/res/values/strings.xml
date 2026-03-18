@@ -1,3 +1,18 @@
 <resources>
     <string name="app_name">Linhome</string>
+    
+    <!-- Ringtone settings -->
+    <string name="settings_ringtone">Ringtone</string>
+    <string name="settings_ringtone_select">Select ringtone</string>
+    <string name="settings_ringtone_select_message">Choose an audio file from your device to use as the ringtone for incoming calls.</string>
+    <string name="settings_ringtone_not_set">Not set</string>
+    <string name="ringtone_selected">Ringtone selected</string>
+    <string name="ringtone_copy_failed">Failed to copy ringtone file</string>
+    
+    <!-- Common dialog buttons -->
+    <string name="select">Select</string>
+    <string name="cancel">Cancel</string>
+    
+    <!-- Permission errors -->
+    <string name="permission_denied">Permission denied. Please grant storage permission to select a ringtone.</string>
 </resources>

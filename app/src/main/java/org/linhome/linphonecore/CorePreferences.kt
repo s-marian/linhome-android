@@ -189,8 +189,11 @@ class CorePreferences constructor(private val context: Context) {
     val sipAccountDefaultValuesPath: String
         get() = context.filesDir.absolutePath + "/assistant_sip_account_default_values"
 
-    val ringtonePath: String
-        get() = context.filesDir.absolutePath + "/share/sounds/linphone/rings/notes_of_the_optimistic.mkv"
+    var ringtonePath: String
+        get() = config.getString("app", "ringtone_path", context.filesDir.absolutePath + "/ringtone.wav") ?: context.filesDir.absolutePath + "/ringtone.wav"
+        set(value) {
+            config.setString("app", "ringtone_path", value)
+        }
 
 
     fun copyAssetsFromPackage() {
@@ -200,6 +203,7 @@ class CorePreferences constructor(private val context: Context) {
         copy("assistant_sip_account_default_values", sipAccountDefaultValuesPath, true)
         copy("nowebcamCIF.jpg", context.filesDir.absolutePath+"/nowebcamCIF.jpg", true)
         copy("bell.wav", context.filesDir.absolutePath+"/bell.wav", true)
+        copy("ringtone.wav", context.filesDir.absolutePath+"/ringtone.wav", true)
 
 
     }

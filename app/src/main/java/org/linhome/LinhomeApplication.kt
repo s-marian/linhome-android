@@ -78,7 +78,7 @@ class LinhomeApplication : Application() {
                 corePreferences.config.setBool("app","first_launch", false)
             }
             coreContext.core.setStaticPicture(context.filesDir.absolutePath+"/nowebcamCIF.jpg")
-            coreContext.core.ring = context.filesDir.absolutePath+"/bell.wav"
+            coreContext.core.ring = context.filesDir.absolutePath+"/ringtone.wav"
             coreContext.core.ringDuringIncomingEarlyMedia = true
             coreContext.core.isNativeRingingEnabled = true
             coreContext.core.friendsDatabasePath = context.filesDir.absolutePath+"/devices.db"

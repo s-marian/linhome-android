@@ -24,6 +24,7 @@ import androidx.databinding.ViewDataBinding
 import androidx.lifecycle.MutableLiveData
 import org.linhome.LinhomeApplication
 import org.linhome.customisation.Texts
+import org.linhome.linphonecore.CorePreferences
 import org.linhome.utils.databindings.ViewModelWithTools
 import org.linphone.core.Core
 import org.linphone.core.CoreListenerStub
@@ -37,6 +38,9 @@ class SettingsViewModel : ViewModelWithTools() {
     val enableIpv6 = MutableLiveData(core.isIpv6Enabled())
     val latestSnapshotShown = MutableLiveData(corePref.showLatestSnapshot)
     var backgroundModeEnabled = MutableLiveData(corePref.keepServiceAlive)
+    
+    // Ringtone
+    val ringtonePath = MutableLiveData(corePref.ringtonePath)
 
 
     // Logs
@@ -101,6 +105,32 @@ class SettingsViewModel : ViewModelWithTools() {
             } else {
                 LinhomeApplication.coreContext.notificationsManager.stopForegroundNotificationIfPossible()
             }
+        }
+    }
+
+    val ringtonePathListener = object : SettingListenerStub() {
+        override fun onClicked() {
+            // This listener is not used - the actual dialog showing is handled by SettingsFragment
+        }
+    }
+
+    fun setRingtonePath(path: String) {
+        corePref.ringtonePath = path
+        ringtonePath.value = path
+        // Apply the new ringtone to the core
+        LinhomeApplication.coreContext.core.ring = path
+    }
+
+    fun showRingtonePicker(fragmentManager: androidx.fragment.app.FragmentManager) {
+        org.linphone.core.tools.Log.i("[RingtoneDebug] showRingtonePicker called with fm: $fragmentManager")
+        try {
+            val ringtonePicker = RingtonePickerDialog()
+            org.linphone.core.tools.Log.i("[RingtoneDebug] RingtonePickerDialog created: $ringtonePicker")
+            ringtonePicker.show(fragmentManager, RingtonePickerDialog.TAG)
+            org.linphone.core.tools.Log.i("[RingtoneDebug] Dialog show called")
+        } catch (e: Exception) {
+            org.linphone.core.tools.Log.e("[RingtoneDebug] Exception in showRingtonePicker: $e")
+            e.printStackTrace()
         }
     }
 

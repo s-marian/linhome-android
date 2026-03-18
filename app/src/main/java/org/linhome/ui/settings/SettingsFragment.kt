@@ -149,5 +149,106 @@ class SettingsFragment : GenericFragment() {
         }
     }
 
+    private val pickRingtoneLauncher = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        org.linphone.core.tools.Log.i("[RingtoneDebug] onActivityResult: uri=$uri")
+        uri?.let { handleSelectedRingtone(it) }
+    }
+    
+    val ringtonePathListener = object : SettingListenerStub() {
+        override fun onClicked() {
+            org.linphone.core.tools.Log.i("[RingtoneDebug] ringtonePathListener onClicked called")
+            try {
+                val context = requireContext()
+                org.linphone.core.tools.Log.i("[RingtoneDebug] Showing AlertDialog")
+                
+                androidx.appcompat.app.AlertDialog.Builder(context)
+                    .setTitle(org.linhome.R.string.settings_ringtone_select)
+                    .setMessage(org.linhome.R.string.settings_ringtone_select_message)
+                    .setPositiveButton(org.linhome.R.string.select) { dialog, _ ->
+                        org.linphone.core.tools.Log.i("[RingtoneDebug] User clicked select")
+                        pickRingtoneLauncher.launch(arrayOf(
+                            "audio/*",
+                            "audio/mp3",
+                            "audio/mpeg",
+                            "audio/wav",
+                            "audio/wave",
+                            "audio/ogg",
+                            "audio/m4a",
+                            "audio/aac",
+                            "audio/amr"
+                        ))
+                        dialog.dismiss()
+                    }
+                    .setNegativeButton(org.linhome.R.string.cancel) { dialog, _ ->
+                        org.linphone.core.tools.Log.i("[RingtoneDebug] User clicked cancel")
+                        dialog.dismiss()
+                    }
+                    .setOnCancelListener { dialog ->
+                        org.linphone.core.tools.Log.i("[RingtoneDebug] Dialog cancelled")
+                        dialog.dismiss()
+                    }
+                    .show()
+                
+                org.linphone.core.tools.Log.i("[RingtoneDebug] AlertDialog shown")
+            } catch (e: Exception) {
+                org.linphone.core.tools.Log.e("[RingtoneDebug] Error showing ringtone picker: $e")
+                e.printStackTrace()
+            }
+        }
+    }
+    
+    private fun handleSelectedRingtone(uri: android.net.Uri) {
+        val context = requireContext()
+        val filePath = getFilePathFromUri(context, uri)
+        
+        if (filePath != null && java.io.File(filePath).exists()) {
+            settingsViewModel.setRingtonePath(filePath)
+            org.linhome.utils.DialogUtil.toast("ringtone_selected")
+        } else {
+            copyUriToFile(context, uri)
+        }
+    }
+    
+    private fun getFilePathFromUri(context: android.content.Context, uri: android.net.Uri): String? {
+        if (uri.scheme == android.content.ContentResolver.SCHEME_FILE) {
+            return uri.path
+        }
+        
+        if (uri.scheme == android.content.ContentResolver.SCHEME_CONTENT) {
+            val projection = arrayOf(android.provider.MediaStore.MediaColumns.DATA)
+            context.contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
+                val columnIndex = cursor.getColumnIndexOrThrow(android.provider.MediaStore.MediaColumns.DATA)
+                if (cursor.moveToFirst()) {
+                    return cursor.getString(columnIndex)
+                }
+            }
+        }
+        
+        return null
+    }
+    
+    private fun copyUriToFile(context: android.content.Context, uri: android.net.Uri) {
+        try {
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                val fileName = "ringtone_${System.currentTimeMillis()}.mp3"
+                val outputFile = java.io.File(context.filesDir, "share/sounds/linhome/$fileName")
+                outputFile.parentFile?.mkdirs()
+                
+                outputFile.outputStream().use { outputStream ->
+                    inputStream.copyTo(outputStream)
+                }
+                
+                org.linphone.core.tools.Log.i("[RingtonePicker] Copied ringtone to: ${outputFile.absolutePath}")
+                settingsViewModel.setRingtonePath(outputFile.absolutePath)
+                org.linhome.utils.DialogUtil.toast("ringtone_selected")
+            }
+        } catch (e: Exception) {
+            org.linphone.core.tools.Log.e("[RingtonePicker] Error copying ringtone file: ${e.message}")
+            org.linhome.utils.DialogUtil.error("ringtone_copy_failed")
+        }
+    }
+
 
 }
