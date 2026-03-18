@@ -38,6 +38,8 @@ class SettingsViewModel : ViewModelWithTools() {
     val enableIpv6 = MutableLiveData(core.isIpv6Enabled())
     val latestSnapshotShown = MutableLiveData(corePref.showLatestSnapshot)
     var backgroundModeEnabled = MutableLiveData(corePref.keepServiceAlive)
+    val incomingCallOverlay = MutableLiveData(corePref.showIncomingCallOverlay)
+    val keepScreenOn = MutableLiveData(corePref.keepScreenOn)
     
     // Ringtone
     val ringtonePath = MutableLiveData(corePref.ringtonePath)
@@ -108,6 +110,18 @@ class SettingsViewModel : ViewModelWithTools() {
         }
     }
 
+    val incomingCallOverlayListener = object : SettingListenerStub() {
+        override fun onBoolValueChanged(newValue: Boolean) {
+            corePref.showIncomingCallOverlay = newValue
+        }
+    }
+
+    val keepScreenOnListener = object : SettingListenerStub() {
+        override fun onBoolValueChanged(newValue: Boolean) {
+            corePref.keepScreenOn = newValue
+        }
+    }
+
     val ringtonePathListener = object : SettingListenerStub() {
         override fun onClicked() {
             // This listener is not used - the actual dialog showing is handled by SettingsFragment
@@ -148,6 +162,5 @@ class SettingsViewModel : ViewModelWithTools() {
         encryptionLabels.value = labels
         encryptionIndex.value = encryptionValues.indexOf(core.mediaEncryption.toInt())
     }
-
 
 }

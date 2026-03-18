@@ -113,6 +113,12 @@ class CorePreferences constructor(private val context: Context) {
             config.setBool("app", "keep_service_alive", value)
         }
 
+    var keepScreenOn: Boolean
+        get() = config.getBool("app", "keep_screen_on", false)
+        set(value) {
+            config.setBool("app", "keep_screen_on", value)
+        }
+
 
     /* Audio */
 
@@ -146,6 +152,12 @@ class CorePreferences constructor(private val context: Context) {
         get() = config.getInt("app", "auto_answer_delay", 0)
         set(value) {
             config.setInt("app", "auto_answer_delay", value)
+        }
+
+    var showIncomingCallOverlay: Boolean
+        get() = config.getBool("app", "incoming_call_overlay", false)
+        set(value) {
+            config.setBool("app", "incoming_call_overlay", value)
         }
 
     var showCallOverlay: Boolean

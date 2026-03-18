@@ -94,11 +94,23 @@
             checked="@={model.backgroundModeEnabled}"/>
 
         <include
+            layout="@layout/settings_widget_switch"
+            title='@{model.getText("settings_keep_screen_on")}'
+            listener="@{model.keepScreenOnListener}"
+            checked="@={model.keepScreenOn}"/>
+
+        <include
             layout="@layout/settings_widget_basic"
             title='@{model.getText("settings_ringtone")}'
             subtitle="@{model.ringtonePath}"
             listener="@{view.ringtonePathListener}"
             subsection="@{true}"/>
+
+        <include
+            layout="@layout/settings_widget_switch"
+            title='@{model.getText("settings_incoming_call_overlay")}'
+            listener="@{view.incomingCallOverlayListener}"
+            checked="@={model.incomingCallOverlay}"/>
 
     </LinearLayout>
     </ScrollView>

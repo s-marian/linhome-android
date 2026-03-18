@@ -21,6 +21,9 @@
 package org.linhome.ui.call
 
 import android.Manifest
+import android.view.WindowManager
+import org.linhome.LinhomeApplication
+import org.linhome.utils.ScreenOnManager
 import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.os.Bundle
@@ -119,6 +122,11 @@ class CallInProgressActivity : CallGenericActivity() {
 
     override fun onResume() {
         super.onResume()
+        // Enable keep screen on if the setting is enabled
+        if (LinhomeApplication.corePreferences.keepScreenOn) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
+        
         coreContext.core.nativeVideoWindowId =
             if (callViewModel.videoFullScreen.value!!) binding.videofullscreen else binding.chunkCallDeviceIconOrVideo?.videocollapsed
 
@@ -132,10 +140,13 @@ class CallInProgressActivity : CallGenericActivity() {
     }
 
     override fun onPause() {
+        // Disable keep screen on
+        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        
         if (coreContext.core.callsNb > 0) {
             coreContext.createCallOverlay()
         }
-	coreContext.core.nativeVideoWindowId = null
+ coreContext.core.nativeVideoWindowId = null
         super.onPause()
     }
 

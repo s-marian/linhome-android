@@ -55,7 +55,7 @@ import permissions.dispatcher.RuntimePermissions
 
 
 @RuntimePermissions
-class MainActivity : GenericActivity() {
+class MainActivity : BaseActivity() {
 
     lateinit var navController: NavController
     lateinit var navControllerSideMenu: NavController

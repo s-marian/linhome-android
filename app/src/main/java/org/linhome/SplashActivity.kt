@@ -25,14 +25,14 @@ import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
 import androidx.databinding.DataBindingUtil
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import org.linhome.customisation.Theme
 import org.linhome.databinding.ActivitySplashBinding
 
-class SplashActivity : GenericActivity() {
+/**
+ * SplashActivity - Removed delay to achieve instant startup.
+ * The core is pre-initialized in LinhomeApplication.onCreate().
+ * This activity immediately navigates to MainActivity.
+ */
+class SplashActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val decorView: View = window.decorView
@@ -43,12 +43,11 @@ class SplashActivity : GenericActivity() {
 
         DataBindingUtil.setContentView(this, R.layout.activity_splash) as ActivitySplashBinding
 
-        GlobalScope.launch(context = Dispatchers.Main) {
-            delay(Theme.arbitraryValue("splash_display_duration_ms", "2000").toLong())
-            val intent = Intent(this@SplashActivity, MainActivity::class.java)
-            startActivity(intent)
-            finish()
-        }
+        // Immediately navigate to MainActivity without delay
+        // Core is pre-initialized in LinhomeApplication.onCreate()
+        val intent = Intent(this@SplashActivity, MainActivity::class.java)
+        startActivity(intent)
+        finish()
     }
 
 }

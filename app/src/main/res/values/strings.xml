@@ -15,4 +15,15 @@
     
     <!-- Permission errors -->
     <string name="permission_denied">Permission denied. Please grant storage permission to select a ringtone.</string>
+    
+    <!-- Incoming call overlay settings -->
+    <string name="settings_incoming_call_overlay">Full-screen incoming call overlay</string>
+    <string name="overlay_permission_required">Overlay permission required</string>
+    <string name="overlay_permission_message">To display incoming calls on top of other apps, please grant the SYSTEM_ALERT_WINDOW permission in your device settings.</string>
+    <string name="grant_permission">Grant permission</string>
+    <string name="settings">Settings</string>
+    
+    <!-- Keep screen on setting -->
+    <string name="settings_keep_screen_on">Keep screen on</string>
+    <string name="settings_keep_screen_on_summary">Prevent device from sleeping when app is open</string>
 </resources>
