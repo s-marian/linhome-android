@@ -89,9 +89,12 @@ class CallInProgressActivity : CallGenericActivity() {
             }
             binding.videofullscreen.setOnTouchListener { _, event ->
                 if (event.action == MotionEvent.ACTION_UP) {
-                    binding.actions.toogleVisible()
-                    binding.controls?.toogleVisible()
-                    binding.timer.toogleVisible()
+                    val shouldHideButtons = !LinhomeApplication.corePreferences.callButtonsAlwaysVisible
+                    if (shouldHideButtons) {
+                        binding.actions.toogleVisible()
+                        binding.controls?.toogleVisible()
+                        binding.timer.toogleVisible()
+                    }
                 }
                 true
             }

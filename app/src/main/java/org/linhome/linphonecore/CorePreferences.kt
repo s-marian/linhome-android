@@ -172,6 +172,12 @@ class CorePreferences constructor(private val context: Context) {
             config.setBool("app", "call_overlay", value)
         }
 
+    var callButtonsAlwaysVisible: Boolean
+        get() = config.getBool("app", "call_buttons_always_visible", true)
+        set(value) {
+            config.setBool("app", "call_buttons_always_visible", value)
+        }
+
     var passwordAlgo: String
         get() = config.getString("assistant", "password_algo", "SHA-256")!!
         set(value) {
