@@ -18,6 +18,7 @@
     
     <!-- Incoming call overlay settings -->
     <string name="settings_incoming_call_overlay">Full-screen incoming call overlay</string>
+    <string name="settings_incoming_call_overlay_rtsp">Show RTSP stream in overlay</string>
     <string name="overlay_permission_required">Overlay permission required</string>
     <string name="overlay_permission_message">To display incoming calls on top of other apps, please grant the SYSTEM_ALERT_WINDOW permission in your device settings.</string>
     <string name="grant_permission">Grant permission</string>
@@ -26,4 +27,25 @@
     <!-- Keep screen on setting -->
     <string name="settings_keep_screen_on">Keep screen on</string>
     <string name="settings_keep_screen_on_summary">Prevent device from sleeping when app is open</string>
+    
+    <!-- RTSP Stream settings -->
+    <string name="settings_rtsp_stream">RTSP Stream</string>
+    <string name="settings_rtsp_stream_configure">Configure RTSP Stream</string>
+    <string name="settings_rtsp_stream_configure_message">Configure the RTSP stream URL, username, and password to view the video stream.</string>
+    <string name="settings_rtsp_stream_url">Stream URL</string>
+    <string name="settings_rtsp_stream_url_hint">rtsp://example.com/stream</string>
+    <string name="settings_rtsp_stream_url_required">Stream URL is required</string>
+    <string name="settings_rtsp_stream_url_invalid">URL must start with rtsp://</string>
+    <string name="settings_rtsp_stream_username">Username (optional)</string>
+    <string name="settings_rtsp_stream_password">Password (optional)</string>
+    <string name="settings_rtsp_stream_anonymous">Anonymous access</string>
+    <string name="settings_rtsp_stream_anonymous_hint">Leave username and password empty for anonymous access</string>
+    <string name="settings_rtsp_stream_save">Save Configuration</string>
+    <string name="settings_rtsp_stream_saved">RTSP stream configuration saved</string>
+    <string name="settings_rtsp_stream_view">View Stream</string>
+    <string name="settings_rtsp_stream_not_configured">No RTSP stream configured</string>
+    <string name="rtsp_stream_viewer">RTSP Stream Viewer</string>
+    <string name="rtsp_stream_viewer_error">Failed to load RTSP stream</string>
+    <string name="rtsp_stream_viewer_connecting">Connecting to stream...</string>
+    <string name="rtsp_stream_viewer_disconnected">Stream disconnected</string>
 </resources>

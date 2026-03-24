@@ -9,6 +9,7 @@ This document outlines the implementation plan for adding an RTSP stream viewer 
 - Settings screen for stream configuration
 - Single stream configuration (not multiple streams)
 - Full-screen video playback with controls
+- **Anonymous access when username/password are empty**
 
 ## Architecture
 
@@ -43,9 +44,27 @@ RTSP Stream Feature
 ```kotlin
 data class RTSPStream(
     val url: String,
-    val username: String,
-    val password: String
-)
+    val username: String = "",
+    val password: String = ""
+) {
+    /**
+     * Returns true if authentication is required (username or password is provided).
+     * Returns false for anonymous access.
+     */
+    fun requiresAuthentication(): Boolean = username.isNotEmpty() || password.isNotEmpty()
+    
+    /**
+     * Builds the RTSP URL with optional authentication credentials.
+     * If no credentials are provided, returns the original URL.
+     */
+    fun buildAuthenticatedUrl(): String {
+        return if (requiresAuthentication()) {
+            "rtsp://${username}:${password}@${url.removePrefix("rtsp://")}"
+        } else {
+            url
+        }
+    }
+}
 ```
 
 ### 2. CorePreferences Extension
@@ -53,27 +72,86 @@ data class RTSPStream(
 
 Add RTSP stream configuration storage:
 - `rtspStreamUrl: String` - Stream URL
-- `rtspStreamUsername: String` - Authentication username
-- `rtspStreamPassword: String` - Authentication password
+- `rtspStreamUsername: String` - Authentication username (optional)
+- `rtspStreamPassword: String` - Authentication password (optional)
+
+```kotlin
+var rtspStreamUrl: String
+    get() = config.getString("rtsp", "stream_url", "") ?: ""
+    set(value) {
+        config.setString("rtsp", "stream_url", value)
+    }
+
+var rtspStreamUsername: String
+    get() = config.getString("rtsp", "stream_username", "") ?: ""
+    set(value) {
+        config.setString("rtsp", "stream_username", value)
+    }
+
+var rtspStreamPassword: String
+    get() = config.getString("rtsp", "stream_password", "") ?: ""
+    set(value) {
+        config.setString("rtsp", "stream_password", value)
+    }
+
+/**
+ * Retrieves the complete RTSP stream configuration.
+ * Returns an RTSPStream with empty credentials if not configured.
+ */
+fun getRtspStreamConfiguration(): RTSPStream {
+    return RTSPStream(
+        url = rtspStreamUrl,
+        username = rtspStreamUsername,
+        password = rtspStreamPassword
+    )
+}
+```
 
 ### 3. RTSPStreamViewModel
 **Location:** `app/src/main/java/org/linhome/ui/settings/RTSPStreamViewModel.kt`
 
 Responsibilities:
 - Manage stream configuration state
-- Validate URL format
+- Validate URL format (must start with rtsp://)
 - Handle save/cancel operations
 - Provide LiveData for UI binding
+- Support anonymous access (empty username/password)
+
+```kotlin
+class RTSPStreamViewModel : ViewModel() {
+    val streamUrl = MutableLiveData("")
+    val username = MutableLiveData("")
+    val password = MutableLiveData("")
+    val isValid = MutableLiveData(false)
+    val errorMessage = MutableLiveData<String?>()
+    
+    // Validation: URL must start with rtsp://
+    fun validateUrl(url: String): Boolean {
+        return url.startsWith("rtsp://", ignoreCase = true)
+    }
+    
+    // Save configuration
+    fun saveConfiguration() {
+        if (!validateUrl(streamUrl.value!!)) {
+            errorMessage.value = "URL must start with rtsp://"
+            return
+        }
+        // Save to CorePreferences
+        // ...
+    }
+}
+```
 
 ### 4. RTSPStreamSettingsFragment
 **Location:** `app/src/main/java/org/linhome/ui/settings/RTSPStreamSettingsFragment.kt`
 
 UI Components:
 - EditText for RTSP URL (with hint: "rtsp://example.com/stream")
-- EditText for username
-- EditText for password (password type)
+- EditText for username (optional)
+- EditText for password (password type, optional)
 - Save and Cancel buttons
 - Validation feedback
+- **Note: Username and password fields are optional for anonymous access**
 
 **Layout:** `app/src/main/res/layout/fragment_rtsp_stream_settings.xml`
 
@@ -82,10 +160,29 @@ UI Components:
 
 Responsibilities:
 - Load RTSP stream configuration from CorePreferences
+- Check if authentication is required using `RTSPStream.requiresAuthentication()`
+- Build authenticated URL if credentials are provided
 - Initialize video player (using Linphone SDK Player or ExoPlayer)
 - Display video in TextureView
 - Handle play/pause controls
 - Manage lifecycle (onPause, onDestroy)
+
+```kotlin
+class RtsplibActivity : GenericActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        
+        // Load configuration
+        val rtspStream = corePref.getRtspStreamConfiguration()
+        
+        // Build URL with or without authentication
+        val streamUrl = rtspStream.buildAuthenticatedUrl()
+        
+        // Initialize player with streamUrl
+        // ...
+    }
+}
+```
 
 **Layout:** `app/src/main/res/layout/activity_rtsplib.xml`
 
@@ -96,11 +193,12 @@ Responsibilities:
 - Player state management (playing, paused, error)
 - Video position tracking
 - Error handling and reporting
+- Handle authentication errors
 
 ## Implementation Steps
 
 ### Phase 1: Data Layer
-1. Create RTSPStream data class
+1. Create RTSPStream data class with authentication helper methods
 2. Add RTSP preferences to CorePreferences.kt
 
 ### Phase 2: Settings UI
@@ -118,7 +216,7 @@ Responsibilities:
 
 ### Phase 4: Integration
 12. Add INTERNET permission if not present
-13. Test RTSP stream playback
+13. Test RTSP stream playback (authenticated and anonymous)
 14. Verify settings persistence
 
 ## UI Flow
@@ -127,15 +225,21 @@ Responsibilities:
 graph TD
     A[Settings Screen] --> B[RTSP Stream Settings Section]
     B --> C[RTSP Stream Settings Fragment]
-    C --> D[Configure URL, Username, Password]
-    D --> E[Save Configuration]
-    E --> F[CorePreferences Storage]
+    C --> D[Configure URL]
+    D --> E[Configure Username Optional]
+    E --> F[Configure Password Optional]
+    F --> G[Save Configuration]
+    G --> H[CorePreferences Storage]
     
-    G[Launch RTSP Player] --> H[RtsplibActivity]
-    H --> I[Load Configuration from CorePreferences]
-    I --> J[Initialize Video Player]
-    J --> K[Display Stream in TextureView]
-    K --> L[Play/Pause Controls]
+    I[Launch RTSP Player] --> J[RtsplibActivity]
+    J --> K[Load Configuration from CorePreferences]
+    K --> L{Authentication Required?}
+    L -->|Yes| M[Build Authenticated URL]
+    L -->|No| N[Use Anonymous URL]
+    M --> O[Initialize Video Player]
+    N --> O
+    O --> P[Display Stream in TextureView]
+    P --> Q[Play/Pause Controls]
 ```
 
 ## Technical Considerations
@@ -151,6 +255,16 @@ The implementation can use either:
 Expected format: `rtsp://[username:password@]host:port/path`
 - Username and password can be embedded in URL or provided separately
 - Separate fields allow for easier password management
+- **Empty username/password results in anonymous access**
+
+### Authentication Logic
+```kotlin
+// Anonymous access (no credentials)
+rtsp://example.com/stream
+
+// Authenticated access
+rtsp://username:password@example.com/stream
+```
 
 ### Permissions Required
 - `android.permission.INTERNET` - For network access (check if already present)
@@ -159,21 +273,25 @@ Expected format: `rtsp://[username:password@]host:port/path`
 ### Error Handling
 - Invalid URL format
 - Connection timeout
-- Authentication failure
+- Authentication failure (401/403 errors)
 - Unsupported codec
 - Network connectivity issues
+- **Anonymous access failures**
 
 ## Testing Checklist
 - [ ] Settings screen displays correctly
 - [ ] URL validation works
 - [ ] Configuration saves to CorePreferences
 - [ ] Configuration loads on activity start
-- [ ] Video stream plays correctly
+- [ ] Video stream plays correctly (authenticated)
+- [ ] Video stream plays correctly (anonymous)
 - [ ] H.264 codec is supported
 - [ ] Username/password authentication works
+- [ ] Anonymous access works (empty credentials)
 - [ ] Play/pause controls function
 - [ ] Activity lifecycle handled properly
 - [ ] Error messages display correctly
+- [ ] Authentication error handling works
 
 ## Future Enhancements
 - Support for multiple RTSP streams
@@ -182,3 +300,4 @@ Expected format: `rtsp://[username:password@]host:port/path`
 - Recording capability
 - Stream quality adjustment
 - Network quality indicator
+- Stream profile management (authenticated vs anonymous)

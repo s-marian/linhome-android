@@ -19,23 +19,30 @@
  */
 package org.linhome.ui.call
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.PixelFormat
+import android.os.Build
+import android.provider.Settings
 import android.view.Gravity
 import android.view.LayoutInflater
+import android.view.TextureView
+import android.view.TextureView.SurfaceTextureListener
 import android.view.View
 import android.view.WindowManager
 import android.view.WindowManager.LayoutParams
-import android.widget.LinearLayout
 import android.widget.TextView
+import org.linhome.LinhomeApplication
 import org.linhome.LinhomeApplication.Companion.corePreferences
+import org.linhome.MainActivity
 import org.linhome.R
-import org.linhome.compatibility.Compatibility
+import org.linhome.compatibility.Api26Compatibility
 import org.linhome.linphonecore.extensions.extendedAccept
+import org.linhome.ui.player.RtspVlcPlayer
 import org.linphone.core.Call
 import org.linphone.core.Reason
-import org.linphone.mediastream.Version
 
 /**
  * Manages the full-screen incoming call overlay using SYSTEM_ALERT_WINDOW permission.
@@ -46,6 +53,7 @@ class CallOverlayManager(private val context: Context) {
     private var callOverlay: View? = null
     private var windowManager: WindowManager? = null
     private var currentCall: Call? = null
+    private var rtspVlcPlayer: RtspVlcPlayer? = null
 
     /**
      * Shows the incoming call overlay on top of all other applications.
@@ -56,7 +64,7 @@ class CallOverlayManager(private val context: Context) {
             return
         }
 
-        if (!hasPermission()) {
+        if (!hasSystemAlertWindowPermission(context)) {
             return
         }
 
@@ -77,6 +85,21 @@ class CallOverlayManager(private val context: Context) {
         // Set caller name
         val callerName = overlay.findViewById<TextView>(R.id.callerName)
         callerName.text = call.remoteAddress.asString()
+        
+        // Check if RTSP stream overlay is enabled
+        val useRTSPOverlay = corePreferences.showIncomingCallOverlayWithRTSP
+        val rtspVideoView = overlay.findViewById<TextureView>(R.id.rtspVideoView)
+        val deviceIcon = overlay.findViewById<TextView>(R.id.deviceIcon)
+        
+        if (useRTSPOverlay) {
+            // Show RTSP video view and hide device icon
+            rtspVideoView.visibility = View.VISIBLE
+            deviceIcon.visibility = View.GONE
+        } else {
+            // Hide RTSP video view, show device icon (default behavior)
+            rtspVideoView.visibility = View.GONE
+            deviceIcon.visibility = View.VISIBLE
+        }
         
         // Set up decline button
         val declineButton = overlay.findViewById<TextView>(R.id.declineButton)
@@ -103,6 +126,24 @@ class CallOverlayManager(private val context: Context) {
         try {
             windowManager?.addView(overlay, params)
             callOverlay = overlay
+            
+            // Setup RTSP stream playback AFTER the overlay is added to the window
+            // This ensures the TextureView surface is available
+            if (useRTSPOverlay) {
+                setupRTSPStream(rtspVideoView)
+                
+                // Force layout to ensure TextureView is measured and laid out
+                rtspVideoView.post {
+                    // Small delay to ensure surface is available
+                    android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                        if (rtspVideoView.isAvailable) {
+                            android.util.Log.i("CallOverlayManager", "TextureView is available after post")
+                        } else {
+                            android.util.Log.w("CallOverlayManager", "TextureView is NOT available after post")
+                        }
+                    }, 100)
+                }
+            }
         } catch (e: Exception) {
             // If overlay creation fails, fall back to notification
             e.printStackTrace()
@@ -110,84 +151,120 @@ class CallOverlayManager(private val context: Context) {
     }
 
     /**
-     * Hides the incoming call overlay.
+     * Sets up the RTSP stream playback for the given TextureView using VLC.
      */
-    fun hideIncomingCall() {
-        if (callOverlay != null && windowManager != null) {
-            try {
-                windowManager?.removeView(callOverlay)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-            callOverlay = null
+    private fun setupRTSPStream(textureView: TextureView) {
+        val corePreferences = LinhomeApplication.corePreferences
+        val rtspStream = corePreferences.getRtspStreamConfiguration()
+
+        if (rtspStream.url.isEmpty()) {
+            android.util.Log.e("CallOverlayManager", "No RTSP stream URL configured")
+            return
         }
-        currentCall = null
-    }
 
-    /**
-     * Checks if the app has SYSTEM_ALERT_WINDOW permission.
-     */
-    fun hasPermission(): Boolean {
-        return Compatibility.canDrawOverlay(context)
-    }
+        val streamUrl = rtspStream.buildAuthenticatedUrl()
+        android.util.Log.i("CallOverlayManager", "Starting RTSP stream: $streamUrl")
 
-    /**
-     * Creates the WindowManager.LayoutParams for the overlay.
-     * Uses appropriate window type and flags for full-screen overlay.
-     */
-    private fun createOverlayParams(): LayoutParams {
-        val params = LayoutParams(
-            LayoutParams.MATCH_PARENT,
-            LayoutParams.MATCH_PARENT,
-            if (Version.sdkAboveOrEqual(Version.API26_O_80)) {
-                LayoutParams.TYPE_APPLICATION_OVERLAY
-            } else {
-                LayoutParams.TYPE_PHONE
-            },
-            LayoutParams.FLAG_SHOW_WHEN_LOCKED
-                    or LayoutParams.FLAG_TURN_SCREEN_ON
-                    or LayoutParams.FLAG_DISMISS_KEYGUARD
-                    or LayoutParams.FLAG_KEEP_SCREEN_ON
-                    or LayoutParams.FLAG_NOT_FOCUSABLE
-                    or LayoutParams.FLAG_LAYOUT_IN_SCREEN
-                    or LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-            PixelFormat.TRANSLUCENT
-        )
-
-        params.gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
-
-        return params
-    }
-
-    /**
-     * Handles touch events on the overlay.
-     * Currently just answers the call on touch.
-     */
-    private fun handleOverlayTouch(call: Call) {
-        // Answer the call when user touches the overlay
         try {
-            call.extendedAccept()
-            hideIncomingCall()
+            // Create VLC player
+            rtspVlcPlayer = RtspVlcPlayer(context)
+            
+            // Setup the video view with TextureView
+            rtspVlcPlayer?.setupView(textureView)
+            
+            // Load and play the stream
+            rtspVlcPlayer?.loadStream(streamUrl)
+            
+            android.util.Log.i("CallOverlayManager", "RTSP stream started successfully with VLC")
         } catch (e: Exception) {
+            android.util.Log.e("CallOverlayManager", "Error starting RTSP stream: ${e.message}")
             e.printStackTrace()
         }
     }
 
     /**
-     * Generates an intent to open the SYSTEM_ALERT_WINDOW settings.
+     * Stops the RTSP stream playback and releases resources.
      */
-    fun getOverlaySettingsIntent(): Intent {
-        return Intent(
-            android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION
-        ).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+    private fun stopRTSPStream() {
+        try {
+            rtspVlcPlayer?.release()
+            rtspVlcPlayer = null
+            android.util.Log.i("CallOverlayManager", "RTSP stream stopped")
+        } catch (e: Exception) {
+            android.util.Log.e("CallOverlayManager", "Error stopping RTSP stream: ${e.message}")
         }
     }
 
     /**
-     * Checks if the overlay is currently visible.
+     * Hides the incoming call overlay.
      */
-    fun isOverlayVisible(): Boolean {
-        return callOverlay != null
+    fun hideIncomingCall() {
+        // Stop RTSP stream if playing
+        stopRTSPStream()
+        
+        // Remove overlay from window
+        callOverlay?.let {
+            try {
+                windowManager?.removeView(it)
+            } catch (e: Exception) {
+                android.util.Log.e("CallOverlayManager", "Error removing overlay: ${e.message}")
+            }
+            callOverlay = null
+        }
+        
+        currentCall = null
+    }
+
+    /**
+     * Creates the overlay window parameters.
+     */
+    private fun createOverlayParams(): LayoutParams {
+        val params = LayoutParams(
+            LayoutParams.MATCH_PARENT,
+            LayoutParams.MATCH_PARENT,
+            Api26Compatibility.getOverlayType(),
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
+                    WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
+            PixelFormat.TRANSLUCENT
+        )
+        params.gravity = Gravity.CENTER
+        return params
+    }
+
+    /**
+     * Handles touch events on the overlay.
+     */
+    private fun handleOverlayTouch(call: Call) {
+        // Handle touch events if needed
+    }
+
+    /**
+     * Checks if the app has the SYSTEM_ALERT_WINDOW permission (draw over other apps).
+     * This uses the Settings.canDrawOverlays() API which is the correct way to check
+     * for overlay permissions on Android 6.0+.
+     */
+    private fun hasSystemAlertWindowPermission(context: Context): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Settings.canDrawOverlays(context)
+        } else {
+            true
+        }
+    }
+
+    /**
+     * Creates an intent to open the overlay settings page.
+     * This opens the special "Draw over other apps" settings screen where users
+     * can grant the SYSTEM_ALERT_WINDOW permission.
+     */
+    fun getOverlaySettingsIntent(): Intent {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION).apply {
+                data = android.net.Uri.parse("package:" + context.packageName)
+            }
+        } else {
+            Intent(context, MainActivity::class.java)
+        }
     }
 }

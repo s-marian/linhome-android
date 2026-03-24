@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <data>
         <import type="org.linhome.customisation.Texts"/>
         <import type="android.view.View"/>
@@ -14,104 +15,122 @@
             type="Boolean" />
     </data>
 
-    <ScrollView
+    <FrameLayout
+        android:id="@+id/container"
         android:layout_width="match_parent"
-        backgoundcolor='@{"color_c"}'
         android:layout_height="match_parent">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <org.linhome.ui.widgets.LExpandableSettingsSection
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            title='@{"audio_codecs"}'
-            entries="@{model.audioCodecs}"/>
+            android:background="@color/color_c"
+            android:layout_height="match_parent">
 
-        <org.linhome.ui.widgets.LExpandableSettingsSection
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            title='@{"video_codecs"}'
-            entries="@{model.videCodecs}"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
-        <include
-            layout="@layout/settings_widget_switch"
-            title='@{model.getText("enable_ipv6")}'
-            listener="@{model.enableIpv6Listener}"
-            checked="@={model.enableIpv6}"/>
+                <org.linhome.ui.widgets.LExpandableSettingsSection
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    title='@{"audio_codecs"}'
+                    entries="@{model.audioCodecs}"/>
 
-        <include
-            layout="@layout/settings_widget_spinner"
-            title='@{model.getText("media_encryption")}'
-            listener="@{model.encryptionListener}"
-            selectedIndex="@{model.encryptionIndex}"
-            labels="@{model.encryptionLabels}"/>
+                <org.linhome.ui.widgets.LExpandableSettingsSection
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    title='@{"video_codecs"}'
+                    entries="@{model.videCodecs}"/>
 
-        <include
-            layout="@layout/settings_widget_switch"
-            title='@{model.getText("enable_debuglogs")}'
-            listener="@{model.enableDebugLogsListener}"
-            checked="@={model.enableDebugLogs}"/>
+                <include
+                    layout="@layout/settings_widget_switch"
+                    title='@{model.getText("enable_ipv6")}'
+                    listener="@{model.enableIpv6Listener}"
+                    checked="@={model.enableIpv6}"/>
 
-        <LinearLayout
-            android:id="@+id/debug_log_options"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="@{model.enableDebugLogs ? View.VISIBLE : View.GONE}"
-            android:orientation="vertical">
+                <include
+                    layout="@layout/settings_widget_spinner"
+                    title='@{model.getText("media_encryption")}'
+                    listener="@{model.encryptionListener}"
+                    selectedIndex="@{model.encryptionIndex}"
+                    labels="@{model.encryptionLabels}"/>
 
-            <include
-                layout="@layout/settings_widget_basic"
-                title='@{model.getText("clear_logs")}'
-                listener="@{view.clearLogsListener}"
-                subsection="@{true}"
-                />
+                <include
+                    layout="@layout/settings_widget_switch"
+                    title='@{model.getText("enable_debuglogs")}'
+                    listener="@{model.enableDebugLogsListener}"
+                    checked="@={model.enableDebugLogs}"/>
 
-            <include
-                android:id="@+id/send_logs"
-                layout="@layout/settings_widget_basic"
-                title='@{model.getText("send_logs")}'
-                listener="@{view.sendLogsListener}"
-                subsection="@{true}"
-                />
+                <LinearLayout
+                    android:id="@+id/debug_log_options"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:visibility="@{model.enableDebugLogs ? View.VISIBLE : View.GONE}"
+                    android:orientation="vertical">
 
-        </LinearLayout>
+                    <include
+                        layout="@layout/settings_widget_basic"
+                        title='@{model.getText("clear_logs")}'
+                        listener="@{view.clearLogsListener}"
+                        subsection="@{true}"
+                        />
 
-        <include
-            layout="@layout/settings_widget_switch"
-            title='@{model.getText("settings_device_show_latest_snapshot")}'
-            listener="@{model.showLatestSnapshot}"
-            checked="@={model.latestSnapshotShown}"/>
+                    <include
+                        android:id="@+id/send_logs"
+                        layout="@layout/settings_widget_basic"
+                        title='@{model.getText("send_logs")}'
+                        listener="@{view.sendLogsListener}"
+                        subsection="@{true}"
+                        />
 
-        <include
-            layout="@layout/settings_widget_switch"
-            title='@{model.getText("settings_background_mode")}'
-            listener="@{model.enableBackgroundMode}"
-            checked="@={model.backgroundModeEnabled}"/>
+                </LinearLayout>
 
-        <include
-            layout="@layout/settings_widget_switch"
-            title='@{model.getText("settings_keep_screen_on")}'
-            listener="@{model.keepScreenOnListener}"
-            checked="@={model.keepScreenOn}"/>
+                <include
+                    layout="@layout/settings_widget_switch"
+                    title='@{model.getText("settings_device_show_latest_snapshot")}'
+                    listener="@{model.showLatestSnapshot}"
+                    checked="@={model.latestSnapshotShown}"/>
 
-        <include
-            layout="@layout/settings_widget_basic"
-            title='@{model.getText("settings_ringtone")}'
-            subtitle="@{model.ringtonePath}"
-            listener="@{view.ringtonePathListener}"
-            subsection="@{true}"/>
+                <include
+                    layout="@layout/settings_widget_switch"
+                    title='@{model.getText("settings_background_mode")}'
+                    listener="@{model.enableBackgroundMode}"
+                    checked="@={model.backgroundModeEnabled}"/>
 
-        <include
-            layout="@layout/settings_widget_switch"
-            title='@{model.getText("settings_incoming_call_overlay")}'
-            listener="@{view.incomingCallOverlayListener}"
-            checked="@={model.incomingCallOverlay}"/>
+                <include
+                    layout="@layout/settings_widget_switch"
+                    title='@{model.getText("settings_keep_screen_on")}'
+                    listener="@{model.keepScreenOnListener}"
+                    checked="@={model.keepScreenOn}"/>
 
-    </LinearLayout>
-    </ScrollView>
+                <include
+                    layout="@layout/settings_widget_basic"
+                    title='@{model.getText("settings_ringtone")}'
+                    subtitle="@{model.ringtonePath}"
+                    listener="@{view.ringtonePathListener}"
+                    subsection="@{true}"/>
+
+                <include
+                    layout="@layout/settings_widget_switch"
+                    title='@{model.getText("settings_incoming_call_overlay")}'
+                    listener="@{view.incomingCallOverlayListener}"
+                    checked="@={model.incomingCallOverlay}"/>
+
+                <include
+                    layout="@layout/settings_widget_switch"
+                    title='@{model.getText("settings_incoming_call_overlay_rtsp")}'
+                    listener="@{view.incomingCallOverlayRTSPListener}"
+                    checked="@={model.incomingCallOverlayRTSP}"/>
+
+                <include
+                    layout="@layout/settings_widget_basic"
+                    title='@{model.getText("settings_rtsp_stream")}'
+                    listener="@{view.rtspStreamListener}"
+                    subsection="@{true}"/>
+
+            </LinearLayout>
+        </ScrollView>
+    </FrameLayout>
 </layout>

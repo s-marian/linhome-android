@@ -33,6 +33,10 @@ class DialogUtil {
 
         var context: Context? =
             null // Multi context as activity can change during calls/idle transition
+        
+        fun updateContext(ctx: Context?) {
+            context = ctx
+        }
 
         fun info(textKey: String, args: Array<String>? = null) {
             context?.also {
@@ -142,6 +146,22 @@ class DialogUtil {
                     if (oneArg != null) Texts.get(textKey,oneArg) else Texts.get(textKey),
                     if (long) Toast.LENGTH_LONG else Toast.LENGTH_SHORT
                 ).show()
+            }
+        }
+
+        fun toast(message: String, long: Boolean = false) {
+            context?.also {
+                Toast.makeText(context, message, if (long) Toast.LENGTH_LONG else Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        fun error(message: String) {
+            context?.also {
+                MaterialAlertDialogBuilder(it, R.style.LindoorDialogTheme)
+                    .setTitle(Texts.get("generic_dialog_error_title"))
+                    .setMessage(message)
+                    .setPositiveButton(Texts.get("ok"), null)
+                    .show()
             }
         }
 

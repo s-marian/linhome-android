@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Internet permission for RTSP stream access -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
     <!-- Helps filling notification_phone number and country code in assistant -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
@@ -100,6 +103,15 @@
             android:screenOrientation="sensor"
             >
         </activity>
+
+        <activity
+            android:name="org.linhome.ui.player.RtsplibActivity"
+            android:label="@string/rtsp_stream_viewer"
+            android:theme="@style/LinhomeTheme"
+            android:screenOrientation="sensor"
+            android:exported="false">
+        </activity>
+
         <!-- Receivers -->
 
         <receiver android:name="org.linhome.linphonecore.CorePushReceiver"

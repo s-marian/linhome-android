@@ -39,6 +39,7 @@ class SettingsViewModel : ViewModelWithTools() {
     val latestSnapshotShown = MutableLiveData(corePref.showLatestSnapshot)
     var backgroundModeEnabled = MutableLiveData(corePref.keepServiceAlive)
     val incomingCallOverlay = MutableLiveData(corePref.showIncomingCallOverlay)
+    var incomingCallOverlayRTSP = MutableLiveData(corePref.showIncomingCallOverlayWithRTSP)
     val keepScreenOn = MutableLiveData(corePref.keepScreenOn)
     
     // Ringtone
@@ -113,6 +114,12 @@ class SettingsViewModel : ViewModelWithTools() {
     val incomingCallOverlayListener = object : SettingListenerStub() {
         override fun onBoolValueChanged(newValue: Boolean) {
             corePref.showIncomingCallOverlay = newValue
+        }
+    }
+
+    val incomingCallOverlayRTSPListener = object : SettingListenerStub() {
+        override fun onBoolValueChanged(newValue: Boolean) {
+            corePref.showIncomingCallOverlayWithRTSP = newValue
         }
     }
 

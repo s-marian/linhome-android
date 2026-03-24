@@ -26,7 +26,9 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.PixelFormat
 import android.media.AudioManager
+import android.os.Build
 import android.os.Vibrator
+import android.provider.Settings
 import android.telephony.TelephonyManager
 import android.util.TypedValue
 import android.view.Gravity
@@ -161,7 +163,7 @@ class CoreContext(
                 }
 
                 // Show incoming call overlay if enabled and permission granted
-                if (corePreferences.showIncomingCallOverlay && callOverlayManager.hasPermission()) {
+                if (corePreferences.showIncomingCallOverlay && hasSystemAlertWindowPermission(context)) {
                     callOverlayManager.showIncomingCall(call)
                 } else {
                     // Fall back to notification if overlay is not enabled or permission not granted
@@ -479,6 +481,19 @@ class CoreContext(
     }
 
     fun isOverlayPermissionGranted(): Boolean {
-        return callOverlayManager.hasPermission()
+        return hasSystemAlertWindowPermission(context)
+    }
+
+    /**
+     * Checks if the app has the SYSTEM_ALERT_WINDOW permission (draw over other apps).
+     * This uses the Settings.canDrawOverlays() API which is the correct way to check
+     * for overlay permissions on Android 6.0+.
+     */
+    private fun hasSystemAlertWindowPermission(context: Context): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Settings.canDrawOverlays(context)
+        } else {
+            true
+        }
     }
 }

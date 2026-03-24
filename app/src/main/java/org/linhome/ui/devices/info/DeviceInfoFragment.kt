@@ -26,9 +26,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.fragment.navArgs
 import org.linhome.GenericFragment
+import org.linhome.LinhomeApplication
 import org.linhome.customisation.Texts
 import org.linhome.customisation.Theme
 import org.linhome.databinding.FragmentDeviceInfoBinding
+import org.linhome.ui.player.RtsplibActivity
+import org.linphone.core.tools.Log
 
 class DeviceInfoFragment : GenericFragment() {
 
@@ -44,6 +47,7 @@ class DeviceInfoFragment : GenericFragment() {
         val binding = FragmentDeviceInfoBinding.inflate(inflater, container, false)
         binding.lifecycleOwner = this
         binding.device = args.device
+        binding.view = this
         mainactivity.toolbarViewModel.rightButtonVisible.value = args.device?.isRemotelyProvisionned != true
         return binding.root
     }
@@ -59,6 +63,21 @@ class DeviceInfoFragment : GenericFragment() {
         Theme.setIcon("icons/edit",  mainactivity.binding.appbar.toolbarRightButtonImage)
         mainactivity.binding.appbar.toolbarRightButtonTitle.text = Texts.get("edit")
         mainactivity.resumeNavigation()
+    }
+
+    /**
+     * Launches the RTSP stream player activity to view the configured stream.
+     */
+    fun onViewStreamClicked() {
+        val rtspStream = LinhomeApplication.corePreferences.getRtspStreamConfiguration()
+        if (rtspStream.url.isEmpty()) {
+            Log.e("[DeviceInfoFragment] No RTSP stream URL configured")
+            return
+        }
+        
+        val streamUrl = rtspStream.buildAuthenticatedUrl()
+        val intent = RtsplibActivity.createIntent(requireContext(), streamUrl)
+        startActivity(intent)
     }
 
 }

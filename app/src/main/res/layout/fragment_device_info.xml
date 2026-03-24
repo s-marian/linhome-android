@@ -6,6 +6,7 @@
     <data>
         <import type="android.view.View"/>
         <variable name="device" type="org.linhome.entities.Device" />
+        <variable name="view" type="org.linhome.ui.devices.edit.DeviceInfoFragment" />
     </data>
 
     <ScrollView
@@ -78,13 +79,24 @@
                 android:visibility='@{device.type != null ? View.VISIBLE : View.GONE}'
                 android:text='@{device.typeName()}' />
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/viewStreamButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/settings_rtsp_stream_view"
+                android:visibility='@{device.type != null &amp;&amp; device.type.equals("device_security_camera") ? View.VISIBLE : View.GONE}'
+                app:layout_constraintTop_toBottomOf="@id/type_name"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                android:onClick="@{() -> view.onViewStreamClicked()}"/>
 
             <TextView
                 android:id="@+id/actions_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="55dp"
-                app:layout_constraintTop_toBottomOf="@id/type_name"
+                android:layout_marginTop="16dp"
+                app:layout_constraintTop_toBottomOf="@id/viewStreamButton"
                 app:layout_constraintBottom_toTopOf="@id/actions_list"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"

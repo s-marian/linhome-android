@@ -36,7 +36,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Device icon (phone icon) -->
+        <!-- Device icon (phone icon) - hidden when RTSP stream is shown -->
         <TextView
             android:id="@+id/deviceIcon"
             android:layout_width="wrap_content"
@@ -48,6 +48,18 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/callerName" />
+
+        <!-- RTSP Video Display (for RTSP stream overlay mode) -->
+        <TextureView
+            android:id="@+id/rtspVideoView"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:visibility="visible"
+            app:layout_constraintBottom_toTopOf="@id/buttonsContainer"
+            app:layout_constraintDimensionRatio="4:3"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/deviceIcon" />
 
         <!-- Buttons container -->
         <LinearLayout

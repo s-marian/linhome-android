@@ -40,6 +40,7 @@ import org.linhome.utils.DialogUtil
 import org.linphone.core.Core
 import org.linphone.core.PayloadType
 import org.linphone.core.tools.Log
+import org.linhome.ui.settings.RTSPStreamSettingsFragment
 
 
 class SettingsFragment : GenericFragment() {
@@ -54,6 +55,10 @@ class SettingsFragment : GenericFragment() {
     ): View? {
         binding = FragmentSettingsBinding.inflate(inflater, container, false)
         settingsViewModel = ViewModelProvider(this).get(SettingsViewModel::class.java)
+        
+        // Set DialogUtil context for fragment
+        org.linhome.utils.DialogUtil.updateContext(requireContext())
+        
         initCodecsList(
             LinhomeApplication.coreContext.core.audioPayloadTypes.filter { LinhomeApplication.corePreferences.availableAudioCodecs.contains(it.mimeType.lowercase()) }.toTypedArray(),
             settingsViewModel.audioCodecs,
@@ -69,6 +74,11 @@ class SettingsFragment : GenericFragment() {
         return binding.root
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        // Clear DialogUtil context when fragment is destroyed
+        org.linhome.utils.DialogUtil.updateContext(null)
+    }
 
     private fun initCodecsList(
         payloads: Array<PayloadType>,
@@ -273,6 +283,28 @@ class SettingsFragment : GenericFragment() {
         }
     }
 
+    val incomingCallOverlayRTSPListener = object : SettingListenerStub() {
+        override fun onBoolValueChanged(newValue: Boolean) {
+            // Always save the value first
+            LinhomeApplication.corePreferences.showIncomingCallOverlayWithRTSP = newValue
+            if (newValue) {
+                // Check if overlay permission is granted
+                if (!LinhomeApplication.coreContext.isOverlayPermissionGranted()) {
+                    // Permission not granted, show dialog and revert the toggle
+                    showOverlayPermissionDialog()
+                    // Revert the setting
+                    LinhomeApplication.corePreferences.showIncomingCallOverlayWithRTSP = false
+                }
+            }
+        }
+
+        override fun onClicked() {
+            if (!LinhomeApplication.coreContext.isOverlayPermissionGranted()) {
+                showOverlayPermissionDialog()
+            }
+        }
+    }
+
     private fun showOverlayPermissionDialog() {
         val context = requireContext()
         androidx.appcompat.app.AlertDialog.Builder(context)
@@ -288,6 +320,27 @@ class SettingsFragment : GenericFragment() {
                 dialog.dismiss()
             }
             .show()
+    }
+
+    var rtspStreamListener: SettingListenerStub = object : SettingListenerStub() {
+        override fun onClicked() {
+            org.linphone.core.tools.Log.i("[RTSP] rtspStreamListener onClicked called")
+            try {
+                // Launch RTSP stream settings fragment
+                org.linphone.core.tools.Log.i("[RTSP] Creating RTSPStreamSettingsFragment")
+                val rtspFragment = RTSPStreamSettingsFragment()
+                org.linphone.core.tools.Log.i("[RTSP] Fragment created, starting transaction")
+                // Use childFragmentManager for FragmentContainerView
+                childFragmentManager.beginTransaction()
+                    .replace(R.id.container, rtspFragment, RTSPStreamSettingsFragment.TAG)
+                    .addToBackStack(null)
+                    .commit()
+                org.linphone.core.tools.Log.i("[RTSP] Transaction committed successfully")
+            } catch (e: Exception) {
+                org.linphone.core.tools.Log.e("[RTSP] Error launching RTSP settings: ${e.message}")
+                e.printStackTrace()
+            }
+        }
     }
 
 

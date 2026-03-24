@@ -160,6 +160,12 @@ class CorePreferences constructor(private val context: Context) {
             config.setBool("app", "incoming_call_overlay", value)
         }
 
+    var showIncomingCallOverlayWithRTSP: Boolean
+        get() = config.getBool("app", "incoming_call_overlay_rtsp", false)
+        set(value) {
+            config.setBool("app", "incoming_call_overlay_rtsp", value)
+        }
+
     var showCallOverlay: Boolean
         get() = config.getBool("app", "call_overlay", false)
         set(value) {
@@ -206,6 +212,38 @@ class CorePreferences constructor(private val context: Context) {
         set(value) {
             config.setString("app", "ringtone_path", value)
         }
+
+    /* RTSP Stream */
+
+    var rtspStreamUrl: String
+        get() = config.getString("rtsp", "stream_url", "") ?: ""
+        set(value) {
+            config.setString("rtsp", "stream_url", value)
+        }
+
+    var rtspStreamUsername: String
+        get() = config.getString("rtsp", "stream_username", "") ?: ""
+        set(value) {
+            config.setString("rtsp", "stream_username", value)
+        }
+
+    var rtspStreamPassword: String
+        get() = config.getString("rtsp", "stream_password", "") ?: ""
+        set(value) {
+            config.setString("rtsp", "stream_password", value)
+        }
+
+    /**
+     * Retrieves the complete RTSP stream configuration.
+     * Returns an RTSPStream with empty credentials if not configured.
+     */
+    fun getRtspStreamConfiguration(): org.linhome.entities.RTSPStream {
+        return org.linhome.entities.RTSPStream(
+            url = rtspStreamUrl,
+            username = rtspStreamUsername,
+            password = rtspStreamPassword
+        )
+    }
 
 
     fun copyAssetsFromPackage() {
