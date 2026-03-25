@@ -42,6 +42,7 @@ import org.linhome.compatibility.Api26Compatibility
 import org.linhome.linphonecore.extensions.extendedAccept
 import org.linhome.store.DeviceStore
 import org.linhome.ui.player.RtspVlcPlayer
+import org.linhome.utils.PermissionHelper
 import org.linphone.core.Call
 import org.linphone.core.Reason
 
@@ -57,16 +58,27 @@ class CallOverlayManager(private val context: Context) {
     private var rtspVlcPlayer: RtspVlcPlayer? = null
 
     /**
-     * Shows the incoming call overlay on top of all other applications.
-     * This requires SYSTEM_ALERT_WINDOW permission on Android 6.0+.
-     */
+      * Shows the incoming call overlay on top of all other applications.
+      * This requires SYSTEM_ALERT_WINDOW permission on Android 6.0+.
+      * Also checks for battery optimization settings on Samsung devices.
+      */
     fun showIncomingCall(call: Call) {
         if (!corePreferences.showIncomingCallOverlay) {
             return
         }
 
-        if (!hasSystemAlertWindowPermission(context)) {
+        // Check overlay permission
+        if (!PermissionHelper.hasOverlayPermission(context)) {
+            // Permission not granted - launch settings for user to grant
+            PermissionHelper.launchOverlayPermissionSettings(context)
             return
+        }
+
+        // Check battery optimization (important for Samsung devices)
+        if (!PermissionHelper.isBatteryOptimizationDisabled(context)) {
+            // Battery optimization may cause the overlay to not appear on lock screen
+            // Launch settings to allow user to disable optimization
+            PermissionHelper.launchBatteryOptimizationSettings(context)
         }
 
         // Only show overlay for incoming calls
@@ -235,12 +247,19 @@ class CallOverlayManager(private val context: Context) {
 
     /**
       * Creates the overlay window parameters.
+      * Uses TYPE_APPLICATION_OVERLAY for Android 8.0+ for better Samsung device compatibility.
       */
     private fun createOverlayParams(): LayoutParams {
         val params = LayoutParams(
             LayoutParams.MATCH_PARENT,
             LayoutParams.MATCH_PARENT,
-            Api26Compatibility.getOverlayType(),
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                // TYPE_APPLICATION_OVERLAY is the recommended type for Android 8.0+
+                // It works better on Samsung devices for lock screen overlays
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+            } else {
+                Api26Compatibility.getOverlayType()
+            },
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                     WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
                     WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
@@ -255,30 +274,17 @@ class CallOverlayManager(private val context: Context) {
     }
 
     /**
-     * Handles touch events on the overlay.
-     */
+      * Handles touch events on the overlay.
+      */
     private fun handleOverlayTouch(call: Call) {
         // Handle touch events if needed
     }
 
     /**
-     * Checks if the app has the SYSTEM_ALERT_WINDOW permission (draw over other apps).
-     * This uses the Settings.canDrawOverlays() API which is the correct way to check
-     * for overlay permissions on Android 6.0+.
-     */
-    private fun hasSystemAlertWindowPermission(context: Context): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Settings.canDrawOverlays(context)
-        } else {
-            true
-        }
-    }
-
-    /**
-     * Creates an intent to open the overlay settings page.
-     * This opens the special "Draw over other apps" settings screen where users
-     * can grant the SYSTEM_ALERT_WINDOW permission.
-     */
+      * Creates an intent to open the overlay settings page.
+      * This opens the special "Draw over other apps" settings screen where users
+      * can grant the SYSTEM_ALERT_WINDOW permission.
+      */
     fun getOverlaySettingsIntent(): Intent {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION).apply {
