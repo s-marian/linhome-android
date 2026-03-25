@@ -83,7 +83,8 @@ class DeviceEditorFragment : GenericFragment() {
                 "delete_device_confirm_message",
                 { _: DialogInterface, _: Int ->
                     model.device?.let { it1 -> DeviceStore.removeDevice(it1) }
-                    mainactivity.navController.navigate(R.id.device_deleted)
+                    val action = DeviceEditorFragmentDirections.deviceDeleted()
+                    mainactivity.navController.navigate(action)
                 }, model.device?.name
             )
         }

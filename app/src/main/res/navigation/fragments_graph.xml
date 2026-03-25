@@ -54,6 +54,8 @@
         <action
             android:id="@+id/device_deleted"
             app:destination="@id/navigation_devices"
+            app:popUpTo="@id/navigation_devices"
+            app:popUpToInclusive="true"
             />
     </fragment>
 
