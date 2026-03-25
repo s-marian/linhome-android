@@ -43,6 +43,7 @@ class SettingsViewModel : ViewModelWithTools() {
     val keepScreenOn = MutableLiveData(corePref.keepScreenOn)
     val callButtonsAlwaysVisible = MutableLiveData(corePref.callButtonsAlwaysVisible)
     val immersiveMode = MutableLiveData(corePref.immersiveMode)
+    val childProtectionMode = LinhomeApplication.childProtectionModeState
     
     // Ringtone
     val ringtonePath = MutableLiveData(corePref.ringtonePath)
@@ -140,6 +141,12 @@ class SettingsViewModel : ViewModelWithTools() {
     val immersiveModeListener = object : SettingListenerStub() {
         override fun onBoolValueChanged(newValue: Boolean) {
             corePref.immersiveMode = newValue
+        }
+    }
+
+    val childProtectionModeListener = object : SettingListenerStub() {
+        override fun onBoolValueChanged(newValue: Boolean) {
+            LinhomeApplication.setChildProtectionMode(newValue)
         }
     }
 

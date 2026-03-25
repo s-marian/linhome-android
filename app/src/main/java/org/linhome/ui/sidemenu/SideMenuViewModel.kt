@@ -21,6 +21,7 @@
 package org.linhome.ui.sidemenu
 
 import androidx.lifecycle.ViewModel
+import org.linhome.LinhomeApplication
 import org.linhome.R
 
 class SideMenuViewModel : ViewModel() {
@@ -28,14 +29,17 @@ class SideMenuViewModel : ViewModel() {
     var sideMenuDisconnectOption: MenuOption
 
     init {
-        sideMenuOptions.add(
-            MenuOption(
-                "menu_assistant",
-                "icons/assistant",
-                R.id.navigation_assistant_root
+        val isChildProtectionMode = LinhomeApplication.corePreferences.childProtectionMode
+        if (!isChildProtectionMode) {
+            sideMenuOptions.add(
+                MenuOption(
+                    "menu_assistant",
+                    "icons/assistant",
+                    R.id.navigation_assistant_root
+                )
             )
-        )
-        sideMenuOptions.add(MenuOption("menu_account", "icons/account", R.id.navigation_account))
+            sideMenuOptions.add(MenuOption("menu_account", "icons/account", R.id.navigation_account))
+        }
         sideMenuOptions.add(MenuOption("menu_settings", "icons/settings", R.id.navigation_settings))
         sideMenuOptions.add(MenuOption("menu_about", "icons/about", R.id.navigation_about))
         sideMenuDisconnectOption =

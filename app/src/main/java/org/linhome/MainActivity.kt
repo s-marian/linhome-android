@@ -31,6 +31,7 @@ import android.view.Window
 import android.view.WindowManager
 import androidx.annotation.RequiresApi
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
@@ -162,6 +163,8 @@ class MainActivity : BaseActivity() {
         } else {
             phoneStateWithPermissionCheck()
         }
+
+        LinhomeApplication.childProtectionModeState.observe(this, childProtectionModeObserver)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -177,11 +180,18 @@ class MainActivity : BaseActivity() {
     }
 
     private fun enterRootFragment() {
-        binding.appbar.contentmain.tabbar.visibility = View.VISIBLE
+        val isChildProtectionMode = LinhomeApplication.childProtectionModeState.value == true
+        binding.appbar.contentmain.tabbar.visibility = if (isChildProtectionMode) View.GONE else View.VISIBLE
         toolbarViewModel.backButtonVisible.value = false
         toolbarViewModel.burgerButtonVisible.value = true
         toolbarViewModel.leftButtonVisible.value = false
         toolbarViewModel.rightButtonVisible.value = false
+    }
+
+    private val childProtectionModeObserver = Observer<Boolean> { enabled ->
+        if (navController.currentDestination?.id == R.id.navigation_devices || navController.currentDestination?.id == R.id.navigation_history) {
+            binding.appbar.contentmain.tabbar.visibility = if (enabled == true) View.GONE else View.VISIBLE
+        }
     }
 
     fun pauseNavigation() {

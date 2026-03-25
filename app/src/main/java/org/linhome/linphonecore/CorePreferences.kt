@@ -125,6 +125,12 @@ class CorePreferences constructor(private val context: Context) {
             config.setBool("app", "immersive_mode", value)
         }
 
+    var childProtectionMode: Boolean
+        get() = config.getBool("app", "child_protection_mode", false)
+        set(value) {
+            config.setBool("app", "child_protection_mode", value)
+        }
+
 
     /* Audio */
 

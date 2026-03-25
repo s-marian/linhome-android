@@ -41,6 +41,9 @@ class DevicesFragment : GenericFragment() {
 
     private lateinit var devicesViewModel: DevicesViewModel
     private lateinit var binding: FragmentDevicesBinding
+    private val childProtectionObserver = Observer<Boolean> {
+        updateDeviceButtonsVisibility()
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -55,15 +58,19 @@ class DevicesFragment : GenericFragment() {
         binding.model = devicesViewModel
 
         binding.newDevice.setOnClickListener {
-            binding.newDevice.visibility = View.INVISIBLE
-            val actionDetail = DevicesFragmentDirections.deviceNew()
-            mainactivity.navController.navigate(actionDetail)
+            if (LinhomeApplication.childProtectionModeState.value != true) {
+                binding.newDevice.visibility = View.INVISIBLE
+                val actionDetail = DevicesFragmentDirections.deviceNew()
+                mainactivity.navController.navigate(actionDetail)
+            }
         }
 
         binding.newDeviceNoneConfigured?.setOnClickListener {
-            binding.newDeviceNoneConfigured?.visibility = View.INVISIBLE
-            val actionDetail = DevicesFragmentDirections.deviceNew()
-            mainactivity.navController.navigate(actionDetail)
+            if (LinhomeApplication.childProtectionModeState.value != true) {
+                binding.newDeviceNoneConfigured?.visibility = View.INVISIBLE
+                val actionDetail = DevicesFragmentDirections.deviceNew()
+                mainactivity.navController.navigate(actionDetail)
+            }
         }
 
         binding.deviceList.layoutManager =
@@ -86,16 +93,19 @@ class DevicesFragment : GenericFragment() {
         } else {
             devicesViewModel.selectedDevice.observe(viewLifecycleOwner, Observer { device ->
                 device?.also {
-                    binding.fragmentDeviceInfo?.editDevice?.visibility = if (it.isRemotelyProvisionned) View.GONE else View.VISIBLE
+                    val isChildProtectionMode = LinhomeApplication.childProtectionModeState.value == true
+                    binding.fragmentDeviceInfo?.editDevice?.visibility = if (isChildProtectionMode) View.GONE else if (it.isRemotelyProvisionned) View.GONE else View.VISIBLE
                 }
             })
         }
 
         if (LinhomeApplication.instance.tablet()) {
             binding.fragmentDeviceInfo?.editDevice?.setOnClickListener {
-                val actionDetail = DevicesFragmentDirections.deviceEditTablet()
-                actionDetail.device = devicesViewModel.selectedDevice.value
-                mainactivity.navController.navigate(actionDetail)
+                if (LinhomeApplication.childProtectionModeState.value != true) {
+                    val actionDetail = DevicesFragmentDirections.deviceEditTablet()
+                    actionDetail.device = devicesViewModel.selectedDevice.value
+                    mainactivity.navController.navigate(actionDetail)
+                }
             }
         }
 
@@ -120,12 +130,33 @@ class DevicesFragment : GenericFragment() {
             }
         }
 
+        binding.newDevice.visibility = View.GONE
+        binding.newDeviceNoneConfigured?.visibility = View.GONE
+        LinhomeApplication.childProtectionModeReady.observe(viewLifecycleOwner, Observer { ready ->
+            if (ready == true) {
+                updateDeviceButtonsVisibility()
+            }
+        })
+        LinhomeApplication.childProtectionModeState.observe(viewLifecycleOwner, Observer { enabled ->
+            if (LinhomeApplication.childProtectionModeReady.value == true) {
+                updateDeviceButtonsVisibility()
+            }
+        })
+
         return binding.root
     }
 
-    override fun onResume() {
-        super.onResume()
-        if (LinhomeApplication.instance.tablet()) {
+    private fun isChildProtectionModeActive(): Boolean {
+        val persisted = LinhomeApplication.getPersistedChildProtectionMode(requireContext())
+        return persisted || LinhomeApplication.childProtectionModeState.value == true || LinhomeApplication.corePreferences.childProtectionMode
+    }
+
+    private fun updateDeviceButtonsVisibility() {
+        val isChildProtectionMode = isChildProtectionModeActive()
+        if (isChildProtectionMode) {
+            binding.newDevice.visibility = View.GONE
+            binding.newDeviceNoneConfigured?.visibility = View.GONE
+        } else if (LinhomeApplication.instance.tablet()) {
             if (devicesViewModel.devices.value!!.size == 0) {
                 binding.newDevice.visibility = View.GONE
                 binding.newDeviceNoneConfigured?.visibility = View.VISIBLE
@@ -135,6 +166,21 @@ class DevicesFragment : GenericFragment() {
             }
         } else {
             binding.newDevice.visibility = View.VISIBLE
+            binding.newDeviceNoneConfigured?.visibility = View.GONE
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        if (LinhomeApplication.childProtectionModeReady.value == true) {
+            updateDeviceButtonsVisibility()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (LinhomeApplication.childProtectionModeReady.value == true) {
+            updateDeviceButtonsVisibility()
         }
         binding.swiperefresh?.isEnabled = DeviceStore.serverFriendList != null
     }

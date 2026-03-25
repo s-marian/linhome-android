@@ -112,6 +112,13 @@
                     checked="@={model.immersiveMode}"/>
 
                 <include
+                    layout="@layout/settings_widget_switch"
+                    title='@{model.getText("settings_child_protection_mode")}'
+                    subtitle='@{model.getText("settings_child_protection_mode_summary")}'
+                    listener="@{model.childProtectionModeListener}"
+                    checked="@={model.childProtectionMode}"/>
+
+                <include
                     layout="@layout/settings_widget_basic"
                     title='@{model.getText("settings_ringtone")}'
                     subtitle="@{model.ringtonePath}"
