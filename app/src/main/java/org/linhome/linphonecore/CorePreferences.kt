@@ -119,6 +119,12 @@ class CorePreferences constructor(private val context: Context) {
             config.setBool("app", "keep_screen_on", value)
         }
 
+    var immersiveMode: Boolean
+        get() = config.getBool("app", "immersive_mode", false)
+        set(value) {
+            config.setBool("app", "immersive_mode", value)
+        }
+
 
     /* Audio */
 

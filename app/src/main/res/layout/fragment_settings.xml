@@ -106,6 +106,12 @@
                     checked="@={model.keepScreenOn}"/>
 
                 <include
+                    layout="@layout/settings_widget_switch"
+                    title='@{model.getText("settings_immersive_mode")}'
+                    listener="@{model.immersiveModeListener}"
+                    checked="@={model.immersiveMode}"/>
+
+                <include
                     layout="@layout/settings_widget_basic"
                     title='@{model.getText("settings_ringtone")}'
                     subtitle="@{model.ringtonePath}"

@@ -42,6 +42,7 @@ class SettingsViewModel : ViewModelWithTools() {
     var incomingCallOverlayRTSP = MutableLiveData(corePref.showIncomingCallOverlayWithRTSP)
     val keepScreenOn = MutableLiveData(corePref.keepScreenOn)
     val callButtonsAlwaysVisible = MutableLiveData(corePref.callButtonsAlwaysVisible)
+    val immersiveMode = MutableLiveData(corePref.immersiveMode)
     
     // Ringtone
     val ringtonePath = MutableLiveData(corePref.ringtonePath)
@@ -133,6 +134,12 @@ class SettingsViewModel : ViewModelWithTools() {
     val callButtonsAlwaysVisibleListener = object : SettingListenerStub() {
         override fun onBoolValueChanged(newValue: Boolean) {
             corePref.callButtonsAlwaysVisible = newValue
+        }
+    }
+
+    val immersiveModeListener = object : SettingListenerStub() {
+        override fun onBoolValueChanged(newValue: Boolean) {
+            corePref.immersiveMode = newValue
         }
     }
 

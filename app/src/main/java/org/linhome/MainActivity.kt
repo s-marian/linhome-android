@@ -70,10 +70,6 @@ class MainActivity : BaseActivity() {
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         super.onCreate(savedInstanceState)
 
-        val decorView: View = window.decorView
-        val uiOptions: Int = View.SYSTEM_UI_FLAG_VISIBLE
-        decorView.systemUiVisibility = uiOptions
-        window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
         applyCommonTheme()
 
 

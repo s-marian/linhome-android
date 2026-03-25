@@ -28,6 +28,10 @@
     <string name="settings_keep_screen_on">Keep screen on</string>
     <string name="settings_keep_screen_on_summary">Prevent device from sleeping when app is open</string>
     
+    <!-- Immersive mode setting -->
+    <string name="settings_immersive_mode">Immersive mode</string>
+    <string name="settings_immersive_mode_summary">Hide status bar and navigation bar (swipe to access)</string>
+    
     <!-- Call buttons always visible setting -->
     <string name="settings_call_buttons_always_visible">Always show call buttons</string>
     <string name="settings_call_buttons_always_visible_summary">Keep call buttons visible during calls (disable tap to hide)</string>
