@@ -86,8 +86,10 @@ class DevicesFragment : GenericFragment() {
         if (LinhomeApplication.instance.smartPhone()) {
             devicesViewModel.selectedDevice.observe(viewLifecycleOwner, Observer { device ->
                 device?.also {
-                    val actionDetail = DevicesFragmentDirections.deviceInfo(it)
-                    mainactivity.navController.navigate(actionDetail)
+                    if (LinhomeApplication.childProtectionModeState.value != true) {
+                        val actionDetail = DevicesFragmentDirections.deviceInfo(it)
+                        mainactivity.navController.navigate(actionDetail)
+                    }
                 }
             })
         } else {
