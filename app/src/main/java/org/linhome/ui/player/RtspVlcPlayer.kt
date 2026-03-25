@@ -71,68 +71,40 @@ class RtspVlcPlayer(private val context: Context) {
     }
 
     /**
-     * Set the VLC view for video rendering using SurfaceView.
-     * Configures the video to fill the entire view with stretch aspect ratio.
-     */
-    fun setupView(surfaceView: SurfaceView) {
-        mediaPlayer?.vlcVout?.let { vout ->
-            vout.setVideoView(surfaceView)
-            vout.attachViews()
-            // Set video scale to STRETCH to stretch video to fill the view
-            // mediaPlayer?.setVideoScale(MediaPlayer.ScaleType.STRETCH)
-            mediaPlayer?.setScale(0f)
-            mediaPlayer?.setAspectRatio(null)
-            Log.i(TAG, "VLC view setup complete with SurfaceView")
-        }
-    }
-
-    /**
      * Set the VLC view for video rendering using TextureView.
      * Configures the video to fill the entire view with stretch aspect ratio.
      */
     fun setupView(textureView: TextureView) {
-
         mediaPlayer?.vlcVout?.let { vout ->
-                // 1. Oprim orice randare activă
-                vout.detachViews()
+            // 1. Detach any existing views
+            vout.detachViews()
+            
+            // 2. Set the TextureView
+            vout.setVideoView(textureView)
+            
+            // 3. Force window size to the current UI dimensions
+            // Use post {} to ensure layout is calculated by Android
+            textureView.post {
+                val width = textureView.width
+                val height = textureView.height
                 
-                // 2. Setăm suprafața de afișare
-                vout.setVideoView(textureView)
-                
-                // 3. Forțăm dimensiunea ferestrei la dimensiunea actuală a UI-ului
-                // Folosim post {} pentru a ne asigura că layout-ul e calculat de Android
-                textureView.post {
-                    val width = textureView.width
-                    val height = textureView.height
+                if (width > 0 && height > 0) {
+                    vout.setWindowSize(width, height)
                     
-                    if (width > 0 && height > 0) {
-                        vout.setWindowSize(width, height)
-                        
-                        // 4. Atașăm view-urile după ce am setat WindowSize
-                        vout.attachViews()
+                    // 4. Attach views after setting WindowSize
+                    vout.attachViews()
 
-                        // 5. Aplicăm Best Fit
-                        mediaPlayer?.videoScale = MediaPlayer.ScaleType.SURFACE_BEST_FIT
-                        
-                        // Opțional: Forțăm aspect ratio-ul să fie cel al view-ului 
-                        // pentru a evita recalculări ulterioare ale VLC
-                        mediaPlayer?.aspectRatio = null 
-                    }
+                    // 5. Apply Best Fit scale
+                    mediaPlayer?.videoScale = MediaPlayer.ScaleType.SURFACE_BEST_FIT
+                    
+                    // Optional: Force aspect ratio to match the view
+                    // to avoid further VLC recalculations
+                    mediaPlayer?.aspectRatio = null 
                 }
             }
-
-
-/*
-        mediaPlayer?.vlcVout?.let { vout ->
-            vout.setVideoView(textureView)
-            vout.attachViews()
-            // Set video scale to STRETCH to stretch video to fill the view
-            // mediaPlayer?.setVideoScale(MediaPlayer.ScaleType.STRETCH)
-            mediaPlayer?.setScale(0f)
-            mediaPlayer?.setAspectRatio(null)
+            
             Log.i(TAG, "VLC view setup complete with TextureView")
         }
-*/
     }
 
     /**

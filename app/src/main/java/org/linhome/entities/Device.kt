@@ -140,6 +140,28 @@ data class Device(
         } ?: false
     }
 
+    fun hasRtspStream(): Boolean {
+        return rtspStreamUrl.isNotEmpty()
+    }
+
+    fun viewVideo() {
+        if (rtspStreamUrl.isEmpty()) {
+            return
+        }
+        val context = LinhomeApplication.instance
+        val rtspStream = RTSPStream(
+            url = rtspStreamUrl,
+            username = rtspStreamUsername,
+            password = rtspStreamPassword
+        )
+        val streamUrl = rtspStream.buildAuthenticatedUrl()
+        val intent = android.content.Intent(context, org.linhome.ui.player.RtsplibActivity::class.java).apply {
+            putExtra("streamUrl", streamUrl)
+            flags = android.content.Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+        context.startActivity(intent)
+    }
+
     fun call() {
 
         if (LinhomeApplication.coreContext.core.callsNb > 0) {

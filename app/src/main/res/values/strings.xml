@@ -95,6 +95,9 @@
     <string name="device_type_select">Select Device Type</string>
     <string name="method_type_select">Select Method Type</string>
     
+    <!-- Device List Button Labels -->
+    <string name="view_video">View Video</string>
+    
     <!-- Child Protection Mode -->
     <string name="settings_child_protection_mode">Child Protection Mode</string>
     <string name="settings_child_protection_mode_summary">Hide device management and account features</string>

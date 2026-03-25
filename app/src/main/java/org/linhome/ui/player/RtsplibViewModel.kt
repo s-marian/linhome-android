@@ -37,7 +37,7 @@ class RtsplibViewModel(private val streamUrl: String, private val context: Conte
     val isPlaying = androidx.lifecycle.MutableLiveData(false)
     val error = androidx.lifecycle.MutableLiveData<String?>()
 
-    private var rtspVlcPlayer: RtspVlcPlayer? = null
+    var rtspVlcPlayer: RtspVlcPlayer? = null
 
     /**
      * Factory for creating RtsplibViewModel instances.
@@ -51,11 +51,12 @@ class RtsplibViewModel(private val streamUrl: String, private val context: Conte
 
     /**
      * Starts playing the RTSP stream.
+     * The player should be set up by the Activity before calling this.
      */
     fun startPlaying() {
-        rtspVlcPlayer = RtspVlcPlayer(context)
         rtspVlcPlayer?.loadStream(streamUrl)
         playing.value = true
+        isPlaying.value = true
     }
 
     /**
@@ -70,6 +71,7 @@ class RtsplibViewModel(private val streamUrl: String, private val context: Conte
             } else {
                 rtspVlcPlayer?.play()
                 playing.value = true
+                isPlaying.value = true
             }
         }
     }
@@ -81,6 +83,7 @@ class RtsplibViewModel(private val streamUrl: String, private val context: Conte
         if (playing.value!!) {
             rtspVlcPlayer?.pause()
             playing.value = false
+            isPlaying.value = false
         }
     }
 

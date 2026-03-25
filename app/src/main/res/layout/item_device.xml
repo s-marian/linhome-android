@@ -1,10 +1,11 @@
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
     <data>
         <import type="android.view.View"/>
         <variable name="device" type="org.linhome.entities.Device" />
     </data>
 
-        <androidx.cardview.widget.CardView xmlns:app="http://schemas.android.com/apk/res-auto"
+        <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minHeight="120dp"
@@ -63,6 +64,21 @@
                     style='@{"device_list_device_address"}'
                     android:text="@{device.address}"
                      />
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/view_video"
+                    backgroundeffect='@{"primary_color"}'
+                    icon='@{"icons/device_security_camera"}'
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignParentBottom="true"
+                    android:layout_marginEnd="70dp"
+                    android:layout_marginBottom="13dp"
+                    android:onClick="@{() -> device.viewVideo()}"
+                    android:visibility='@{device.hasRtspStream() ? View.VISIBLE : View.GONE}'
+                    app:fabCustomSize="50dp"
+                    app:tint='@{"color_c"}' />
 
                 <com.google.android.material.floatingactionbutton.FloatingActionButton
                     android:id="@+id/call"

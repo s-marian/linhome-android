@@ -1,4 +1,5 @@
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
         <import type="android.view.View"/>
@@ -66,6 +67,37 @@
                     android:layout_alignParentBottom="true"
                     />
 
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/view_video"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_marginBottom="13dp"
+                    android:layout_marginEnd="70dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignParentBottom="true"
+                    android:visibility='@{device.hasRtspStream() ? View.VISIBLE : View.GONE}'
+                    app:fabCustomSize="50dp"
+                    app:tint='@{"color_c"}'
+                    backgroundeffect='@{"primary_color"}'
+                    icon='@{"icons/device_security_camera"}'
+                    android:onClick="@{() -> device.viewVideo()}"
+                    />
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/call"
+                    backgroundeffect='@{"primary_color"}'
+                    tint='@{"color_c"}'
+                    icon='@{device.supportsVideo() ? "icons/eye" : "icons/phone"}'
+                    app:fabCustomSize="50dp"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_marginBottom="13dp"
+                    android:layout_gravity="end"
+                    android:layout_marginEnd="13dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignParentBottom="true"
+                    android:onClick="@{() -> device.call()}"
+                    />
 
             </RelativeLayout>
 

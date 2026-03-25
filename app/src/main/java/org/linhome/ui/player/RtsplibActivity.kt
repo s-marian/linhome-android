@@ -21,19 +21,21 @@
 package org.linhome.ui.player
 
 import android.os.Bundle
-import android.os.SystemClock
-import android.view.SurfaceView
+import android.os.Handler
+import android.os.Looper
+import android.view.TextureView
 import android.view.View
-import android.widget.Chronometer
+import android.view.WindowManager
 import android.widget.ImageView
-import android.widget.SeekBar
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import org.linhome.GenericActivity
+import org.linhome.LinhomeApplication
 import org.linhome.R
 import org.linhome.databinding.ActivityRtsplibBinding
+import org.linphone.core.Call
 import org.linphone.core.tools.Log
 
 /**
@@ -46,6 +48,7 @@ class RtsplibActivity : GenericActivity() {
     lateinit var playerViewModel: RtsplibViewModel
     var playingOnPause = false
     private var rtspVlcPlayer: RtspVlcPlayer? = null
+    private var timeoutHandler: Handler? = null
 
     companion object {
         /**
@@ -64,6 +67,9 @@ class RtsplibActivity : GenericActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Keep screen on for video streaming
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         // Hide navigation and status bars for immersive mode
         val decorView: View = window.decorView
@@ -131,50 +137,63 @@ class RtsplibActivity : GenericActivity() {
             RtsplibViewModel.Factory(streamUrl, this)
         )[RtsplibViewModel::class.java]
 
+        // Set the player on the ViewModel so it can be used by the ViewModel methods
+        playerViewModel.rtspVlcPlayer = rtspVlcPlayer
+
         binding.model = playerViewModel
 
         // Setup VLC video display
-        val surfaceView = findViewById<SurfaceView>(R.id.video)
-        rtspVlcPlayer?.setupView(surfaceView)
-
-        // Setup controls
-        findViewById<ImageView>(R.id.play).setOnClickListener {
-            togglePlay()
-        }
-
-        findViewById<ImageView>(R.id.cancel_button).setOnClickListener {
-            findViewById<ImageView>(R.id.cancel_button).alpha = 0.3f
-            finish()
-        }
-
-        // Observe player state
-        playerViewModel.playing.observe(this, Observer { playing ->
-            if (playing) {
-                findViewById<Chronometer>(R.id.timer).start()
-            } else {
-                findViewById<Chronometer>(R.id.timer).stop()
-            }
-        })
-
-        playerViewModel.playing.observe(this) { p ->
-            findViewById<Chronometer>(R.id.timer).base = SystemClock.elapsedRealtime() - playerViewModel.position.value!!
-        }
-
-        playerViewModel.userTrackingPosition.observe(this) { p ->
-            if (playerViewModel.userTracking.value == true) {
-                findViewById<Chronometer>(R.id.timer).text =
-                    String.format("%02d:%02d", (p / 1000) / 60, (p / 1000) % 60)
-            }
-        }
-
-        findViewById<Chronometer>(R.id.timer).setOnChronometerTickListener {
-            playerViewModel.updatePosition()
-        }
-
-        findViewById<SeekBar>(R.id.seek).setOnTouchListener { view, motionEvent -> false }
+        val textureView = findViewById<TextureView>(R.id.video)
+        rtspVlcPlayer?.setupView(textureView)
 
         // Start playing the stream
         playerViewModel.startPlaying()
+
+        // Start 60-second timeout
+        startTimeout()
+
+        // Observe call state to close viewer on incoming call
+        observeCallState()
+    }
+
+    /**
+     * Starts a 60-second timeout that automatically closes the activity.
+     */
+    private fun startTimeout() {
+        timeoutHandler = Handler(Looper.getMainLooper())
+        timeoutHandler?.postDelayed({
+            finish()
+        }, 60000) // 60 seconds
+    }
+
+    /**
+     * Handles click on the video surface to cancel/close the viewer.
+     */
+    fun onVideoClick(view: View) {
+        finish()
+    }
+
+    /**
+     * Observes call state changes to close the viewer when an incoming call arrives.
+     * Uses a simple polling approach to check for incoming calls.
+     */
+    private fun observeCallState() {
+        val callCheckHandler = Handler(Looper.getMainLooper())
+        val callCheckRunnable = object : Runnable {
+            override fun run() {
+                // Check if there's an incoming call by checking active calls
+                val activeCalls = LinhomeApplication.coreContext.core.calls
+                for (call in activeCalls) {
+                    if (call.state == Call.State.IncomingReceived || call.state == Call.State.IncomingEarlyMedia) {
+                        finish()
+                        return
+                    }
+                }
+                // Continue checking every 500ms
+                callCheckHandler.postDelayed(this, 500)
+            }
+        }
+        callCheckHandler.post(callCheckRunnable)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -191,18 +210,13 @@ class RtsplibActivity : GenericActivity() {
     }
 
     override fun onDestroy() {
+        // Cancel timeout handler
+        timeoutHandler?.removeCallbacksAndMessages(null)
+        
+        // Cancel call check handler (handled by the runnable itself when activity finishes)
+        
         playerViewModel?.close()
         rtspVlcPlayer?.release()
         super.onDestroy()
-    }
-
-    fun togglePlay() {
-        if (playerViewModel.playing.value == true) {
-            findViewById<Chronometer>(R.id.timer).stop()
-        } else {
-            findViewById<Chronometer>(R.id.timer).base = SystemClock.elapsedRealtime() - playerViewModel.position.value!!
-            findViewById<Chronometer>(R.id.timer).start()
-        }
-        playerViewModel.togglePlay()
     }
 }
