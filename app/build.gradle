@@ -82,6 +82,9 @@ tasks.named("preBuild").configure {
 def crashlyticsForNdkEnabled = new File(projectDir.absolutePath + '/google-services.json').exists() &&
         new File(LinphoneSdkBuildDir + '/libs/').exists() &&
         new File(LinphoneSdkBuildDir + '/libs-debug/').exists()
+def generateVersionCode() {
+    return (int) (System.currentTimeMillis() / 1000)
+}
 
 android {
     compileSdk = 36
@@ -97,13 +100,16 @@ android {
                         'lib/x86/libc++_shared.so',
                         'lib/x86_64/libc++_shared.so']
     }
-    
+
+
+
     defaultConfig {
         applicationId "org.linhome"
         minSdkVersion 23
         targetSdkVersion 36
-        versionCode 37
-        versionName "1.4.1"
+        // versionCode 50
+        versionCode generateVersionCode()
+        versionName "1.4.6-beta3"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -112,7 +118,8 @@ android {
                 linhome_file_provider: applicationId + ".fileprovider"
         ]
         variant.outputs.all {
-            outputFileName = "linhome-android-${variant.buildType.name}-${project.version}.apk"
+            def apkVersion = project.version ?: "1.4.1"
+            outputFileName = "linhome-android-${variant.buildType.name}-${apkVersion}.apk"
         }
     }
 
@@ -215,6 +222,8 @@ dependencies {
     } else {
         compileOnly 'com.google.firebase:firebase-crashlytics-ndk:18.3.7'
     }
+
+    // debugImplementation 'com.github.amitshekhariitbhu.Android-Debug-Database:debug-db:1.0.7'
 }
 
 if (crashlyticsForNdkEnabled) {
