@@ -125,6 +125,10 @@ class DeviceEditorFragment : GenericFragment() {
     override fun onToolbarRightButtonClicked() {
         binding.name.validate()
         binding.address.validate()
+        // Validate RTSP fields
+        binding.rtspUrl.validate()
+        binding.rtspUsername.validate()
+        binding.rtspPassword.validate()
         model.actionsViewModels.forEach {
             if (it.type.value != 0)
                 it.binding.code.validate()

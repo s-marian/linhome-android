@@ -40,6 +40,7 @@ import org.linhome.MainActivity
 import org.linhome.R
 import org.linhome.compatibility.Api26Compatibility
 import org.linhome.linphonecore.extensions.extendedAccept
+import org.linhome.store.DeviceStore
 import org.linhome.ui.player.RtspVlcPlayer
 import org.linphone.core.Call
 import org.linphone.core.Reason
@@ -86,6 +87,9 @@ class CallOverlayManager(private val context: Context) {
         val callerName = overlay.findViewById<TextView>(R.id.callerName)
         callerName.text = call.remoteAddress.asString()
         
+        // Find the device associated with this call
+        val device = DeviceStore.findDeviceByAddress(call.remoteAddress.asString())
+        
         // Check if RTSP stream overlay is enabled
         val useRTSPOverlay = corePreferences.showIncomingCallOverlayWithRTSP
         val rtspVideoView = overlay.findViewById<TextureView>(R.id.rtspVideoView)
@@ -130,7 +134,7 @@ class CallOverlayManager(private val context: Context) {
             // Setup RTSP stream playback AFTER the overlay is added to the window
             // This ensures the TextureView surface is available
             if (useRTSPOverlay) {
-                setupRTSPStream(rtspVideoView)
+                setupRTSPStream(rtspVideoView, device)
                 
                 // Force layout to ensure TextureView is measured and laid out
                 rtspVideoView.post {
@@ -151,19 +155,33 @@ class CallOverlayManager(private val context: Context) {
     }
 
     /**
-     * Sets up the RTSP stream playback for the given TextureView using VLC.
-     */
-    private fun setupRTSPStream(textureView: TextureView) {
-        val corePreferences = LinhomeApplication.corePreferences
-        val rtspStream = corePreferences.getRtspStreamConfiguration()
+      * Sets up the RTSP stream playback for the given TextureView using VLC.
+      * Uses the device's RTSP stream if available.
+      */
+     private fun setupRTSPStream(textureView: TextureView, device: org.linhome.entities.Device?) {
+         // Get RTSP stream from device
+         val rtspStream = device?.let { dev ->
+             if (dev.rtspStreamUrl.isNotEmpty()) {
+                 org.linhome.entities.RTSPStream(
+                     url = dev.rtspStreamUrl,
+                     username = dev.rtspStreamUsername,
+                     password = dev.rtspStreamPassword
+                 )
+             } else {
+                 null
+             }
+         }
 
-        if (rtspStream.url.isEmpty()) {
-            android.util.Log.e("CallOverlayManager", "No RTSP stream URL configured")
-            return
-        }
+         if (rtspStream == null || rtspStream.url.isEmpty()) {
+             android.util.Log.e("CallOverlayManager", "No RTSP stream URL configured for device")
+             // Fall back to showing device icon
+             callOverlay?.findViewById<TextureView>(R.id.rtspVideoView)?.visibility = View.GONE
+             callOverlay?.findViewById<TextView>(R.id.deviceIcon)?.visibility = View.VISIBLE
+             return
+         }
 
         val streamUrl = rtspStream.buildAuthenticatedUrl()
-        android.util.Log.i("CallOverlayManager", "Starting RTSP stream: $streamUrl")
+        android.util.Log.i("CallOverlayManager", "Starting RTSP stream: $streamUrl (from ${if (device != null) "device" else "global config"})")
 
         try {
             // Create VLC player

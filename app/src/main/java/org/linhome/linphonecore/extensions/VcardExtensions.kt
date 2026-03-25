@@ -71,6 +71,14 @@ fun Vcard.isValid():  Boolean {
             Log.e("[Device] vCard validation : invalid action $action")
         }
     }
+    
+    // Validate RTSP stream properties if present
+    val rtspUrlList = card.getExtendedPropertiesValuesByName(Device.vcard_rtsp_url_header)
+    val rtspUrl = if (rtspUrlList.isNotEmpty()) rtspUrlList.component1() else ""
+    if (rtspUrl.isNotEmpty() && !rtspUrl.startsWith("rtsp://", ignoreCase = true)) {
+        Log.e("[Device] vCard validation: invalid RTSP URL $rtspUrl")
+        return false
+    }
 
     return validActions
 

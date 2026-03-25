@@ -50,24 +50,37 @@ data class Device(
     var address: String,
     var actionsMethodType: String?,
     var actions: ArrayList<Action>?,
-    var isRemotelyProvisionned: Boolean
-) :
-    Parcelable {
+    var isRemotelyProvisionned: Boolean,
+    // RTSP stream properties for call overlay
+    var rtspStreamUrl: String = "",
+    var rtspStreamUsername: String = "",
+    var rtspStreamPassword: String = ""
+) : Parcelable {
 
-    val friend: Friend
-        get() =
-            LinhomeApplication.coreContext.core.createFriend().let { friend ->
-                friend.createVcard(name)
-                friend.vcard?.addExtendedProperty(vcard_device_type_header, type!!)
-                friend.vcard?.addSipAddress(address)
-                friend.vcard?.addExtendedProperty(vcard_action_method_type_header,
-                    deviceActionMethodsTovCardActionMethods().get(actionsMethodType!!)!!)
-                actions?.forEach { it ->
-                    friend.vcard?.addExtendedProperty(vcard_actions_list_header,it.type!! + "~" + it.code!!)
-                }
-                Log.i("[Device] created vCard for device: $name ${friend.vcard?.asVcard4String()}")
-                friend
+    fun getFriend(): Friend {
+        return LinhomeApplication.coreContext.core.createFriend().let { friend ->
+            friend.createVcard(name)
+            friend.vcard?.addExtendedProperty(vcard_device_type_header, type!!)
+            friend.vcard?.addSipAddress(address)
+            friend.vcard?.addExtendedProperty(vcard_action_method_type_header,
+                deviceActionMethodsTovCardActionMethods().get(actionsMethodType!!)!!)
+            actions?.forEach { it ->
+                friend.vcard?.addExtendedProperty(vcard_actions_list_header,it.type!! + "~" + it.code!!)
             }
+            // Add RTSP stream properties to vCard
+            if (rtspStreamUrl.isNotEmpty()) {
+                friend.vcard?.addExtendedProperty(vcard_rtsp_url_header, rtspStreamUrl)
+            }
+            if (rtspStreamUsername.isNotEmpty()) {
+                friend.vcard?.addExtendedProperty(vcard_rtsp_username_header, rtspStreamUsername)
+            }
+            if (rtspStreamPassword.isNotEmpty()) {
+                friend.vcard?.addExtendedProperty(vcard_rtsp_password_header, rtspStreamPassword)
+            }
+            Log.i("[Device] created vCard for device: $name ${friend.vcard?.asVcard4String()}")
+            friend
+        }
+    }
 
     var typeIconAsBitmap: Bitmap? = null
 
@@ -79,16 +92,22 @@ data class Device(
         actions: ArrayList<Action>?,
         isRemotelyProvisionned: Boolean
     ) : this(
-        xDigitsUUID(), type, name, address, actionsMethodType, actions, isRemotelyProvisionned
+        xDigitsUUID(), type, name, address, actionsMethodType, actions, isRemotelyProvisionned, "", "", ""
     )
 
-    constructor (card:Vcard, isRemotelyProvisionned:Boolean) : this(card.sipAddresses.component1()?.asStringUriOnly()!!.md5(),
-        card.getExtendedPropertiesValuesByName(vcard_device_type_header).component1(),
-        card.fullName!!,
-        card.sipAddresses.component1()?.asStringUriOnly()!!,
-        vCardActionMethodsToDeviceMethods.get(card.getExtendedPropertiesValuesByName(vcard_action_method_type_header).component1()),
+    constructor (card:Vcard, isRemotelyProvisionned:Boolean) : this(
+        card.sipAddresses.component1()?.asStringUriOnly()?.md5() ?: xDigitsUUID(),
+        card.getExtendedPropertiesValuesByName(vcard_device_type_header).firstOrNull(),
+        card.fullName ?: "Unknown",
+        card.sipAddresses.component1()?.asStringUriOnly() ?: "",
+        vCardActionMethodsToDeviceMethods.get(card.getExtendedPropertiesValuesByName(vcard_action_method_type_header).firstOrNull()),
         ArrayList(),
-        isRemotelyProvisionned)
+        isRemotelyProvisionned,
+        // Parse RTSP stream properties from vCard
+        card.getExtendedPropertiesValuesByName(vcard_rtsp_url_header).firstOrNull() ?: "",
+        card.getExtendedPropertiesValuesByName(vcard_rtsp_username_header).firstOrNull() ?: "",
+        card.getExtendedPropertiesValuesByName(vcard_rtsp_password_header).firstOrNull() ?: ""
+    )
     {
         card.getExtendedPropertiesValuesByName(vcard_actions_list_header).forEach { action ->
             var actionCleaned = action.replace("\\;","~").replace(";","~")
@@ -167,6 +186,10 @@ data class Device(
         const val vcard_device_type_header = "X-LINPHONE-ACCOUNT-TYPE"
         const val vcard_actions_list_header = "X-LINPHONE-ACCOUNT-ACTION"
         const val vcard_action_method_type_header = "X-LINPHONE-ACCOUNT-DTMF-PROTOCOL"
+        // RTSP stream vCard headers
+        const val vcard_rtsp_url_header = "X-LINPHONE-RTSP-URL"
+        const val vcard_rtsp_username_header = "X-LINPHONE-RTSP-USERNAME"
+        const val vcard_rtsp_password_header = "X-LINPHONE-RTSP-PASSWORD"
         val vCardActionMethodsToDeviceMethods = mapOf( "sipinfo" to "method_dtmf_sip_info","rfc2833" to "method_dtmf_rfc_4733","sipmessage" to "method_sip_message") // Server side method names to local app names
         fun deviceActionMethodsTovCardActionMethods () : HashMap<String,String> {
             var result = hashMapOf<String,String>()
@@ -178,24 +201,29 @@ data class Device(
 
         fun typeIconAsBitmap(type: String?): Bitmap? {
             return type?.let {
-                val svgFile = File(
-                    LinhomeApplication.instance.filesDir,
-                    "images/${DeviceTypes.iconNameForDeviceType(it)}.svg"
-                )
-                val targetStream = FileInputStream(svgFile)
-                val svg = SVG.getFromInputStream(targetStream)
-                if (svg.documentWidth != -1f) {
-                    val newBM = Bitmap.createBitmap(
-                        Math.ceil(svg.documentWidth.toDouble()).toInt(),
-                        Math.ceil(svg.documentHeight.toDouble()).toInt(),
-                        Bitmap.Config.ARGB_8888
+                try {
+                    val svgFile = File(
+                        LinhomeApplication.instance.filesDir,
+                        "images/${DeviceTypes.iconNameForDeviceType(it)}.svg"
                     )
-                    val bmcanvas = Canvas(newBM)
-                    bmcanvas.drawRGB(255, 255, 255)
-                    svg.renderToCanvas(bmcanvas)
-                    newBM
-                } else
+                    val targetStream = FileInputStream(svgFile)
+                    val svg = SVG.getFromInputStream(targetStream)
+                    if (svg.documentWidth != -1f) {
+                        val newBM = Bitmap.createBitmap(
+                            Math.ceil(svg.documentWidth.toDouble()).toInt(),
+                            Math.ceil(svg.documentHeight.toDouble()).toInt(),
+                            Bitmap.Config.ARGB_8888
+                        )
+                        val bmcanvas = Canvas(newBM)
+                        bmcanvas.drawRGB(255, 255, 255)
+                        svg.renderToCanvas(bmcanvas)
+                        newBM
+                    } else
+                        null
+                } catch (e: Exception) {
+                    Log.e("Device", "Error loading type icon: ${e.message}")
                     null
+                }
             }
         }
 

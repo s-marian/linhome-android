@@ -40,8 +40,6 @@ import org.linhome.utils.DialogUtil
 import org.linphone.core.Core
 import org.linphone.core.PayloadType
 import org.linphone.core.tools.Log
-import org.linhome.ui.settings.RTSPStreamSettingsFragment
-
 
 class SettingsFragment : GenericFragment() {
 
@@ -321,27 +319,5 @@ class SettingsFragment : GenericFragment() {
             }
             .show()
     }
-
-    var rtspStreamListener: SettingListenerStub = object : SettingListenerStub() {
-        override fun onClicked() {
-            org.linphone.core.tools.Log.i("[RTSP] rtspStreamListener onClicked called")
-            try {
-                // Launch RTSP stream settings fragment
-                org.linphone.core.tools.Log.i("[RTSP] Creating RTSPStreamSettingsFragment")
-                val rtspFragment = RTSPStreamSettingsFragment()
-                org.linphone.core.tools.Log.i("[RTSP] Fragment created, starting transaction")
-                // Use childFragmentManager for FragmentContainerView
-                childFragmentManager.beginTransaction()
-                    .replace(R.id.container, rtspFragment, RTSPStreamSettingsFragment.TAG)
-                    .addToBackStack(null)
-                    .commit()
-                org.linphone.core.tools.Log.i("[RTSP] Transaction committed successfully")
-            } catch (e: Exception) {
-                org.linphone.core.tools.Log.e("[RTSP] Error launching RTSP settings: ${e.message}")
-                e.printStackTrace()
-            }
-        }
-    }
-
 
 }

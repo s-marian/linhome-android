@@ -236,7 +236,10 @@ object DeviceStore {
                     devicesConfig.getString(it, "address", nonNullDefault = "missing"),
                     devicesConfig.getString(it, "actions_method_type", null),
                     actions,
-                    false
+                    false,
+                    "", // rtspStreamUrl
+                    "", // rtspStreamUsername
+                    ""  // rtspStreamPassword
                 )
             )
         }
@@ -252,7 +255,7 @@ object DeviceStore {
 
         devices.sortWith(compareBy({ it.name }, { it.address }))
         devices.forEach { device ->
-            val friend = device.friend
+            val friend = device.getFriend()
             if (!device.isRemotelyProvisionned) {
                 var localDevicesFriendList = core.getFriendListByName(local_devices_fl_name)
                 if (localDevicesFriendList == null) {

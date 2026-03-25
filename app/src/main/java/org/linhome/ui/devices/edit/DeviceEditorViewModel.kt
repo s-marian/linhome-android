@@ -35,6 +35,7 @@ import org.linhome.ui.widgets.LSpinnerListener
 import org.linhome.ui.widgets.SpinnerItem
 import org.linhome.ui.widgets.indexByBackingKey
 import org.linhome.utils.databindings.ViewModelWithTools
+import org.linhome.utils.extensions.xDigitsUUID
 
 class DeviceEditorViewModel : ViewModelWithTools() {
 
@@ -45,6 +46,14 @@ class DeviceEditorViewModel : ViewModelWithTools() {
     var name: Pair<MutableLiveData<String>, MutableLiveData<Boolean>> =
         Pair(MutableLiveData<String>(), MutableLiveData<Boolean>(false))
     var address: Pair<MutableLiveData<String>, MutableLiveData<Boolean>> =
+        Pair(MutableLiveData<String>(), MutableLiveData<Boolean>(false))
+    
+    // RTSP stream fields
+    var rtspUrl: Pair<MutableLiveData<String>, MutableLiveData<Boolean>> =
+        Pair(MutableLiveData<String>(), MutableLiveData<Boolean>(false))
+    var rtspUsername: Pair<MutableLiveData<String>, MutableLiveData<Boolean>> =
+        Pair(MutableLiveData<String>(), MutableLiveData<Boolean>(false))
+    var rtspPassword: Pair<MutableLiveData<String>, MutableLiveData<Boolean>> =
         Pair(MutableLiveData<String>(), MutableLiveData<Boolean>(false))
 
     var availableDeviceTypes: ArrayList<SpinnerItem> = ArrayList()
@@ -66,6 +75,10 @@ class DeviceEditorViewModel : ViewModelWithTools() {
                 address.first.value = it.address
                 deviceType.value = indexByBackingKey(it.type, availableDeviceTypes)
                 actionsMethod.value = indexByBackingKey(it.actionsMethodType, availableMethodTypes)
+                // Load RTSP stream properties
+                rtspUrl.first.value = it.rtspStreamUrl
+                rtspUsername.first.value = it.rtspStreamUsername
+                rtspPassword.first.value = it.rtspStreamPassword
             }
         }
 
@@ -100,7 +113,27 @@ class DeviceEditorViewModel : ViewModelWithTools() {
     }
 
     fun valid(): Boolean {
-        return name.second.value!! && address.second.value!!
+        return name.second.value == true && address.second.value == true && validateRtspUrl()
+    }
+    
+    // Validation for RTSP URL
+    fun validateRtspUrl(): Boolean {
+        val url = rtspUrl.first.value?.trim() ?: ""
+        if (url.isNotEmpty() && !url.startsWith("rtsp://", ignoreCase = true)) {
+            rtspUrl.second.value = false
+            return false
+        }
+        rtspUrl.second.value = true
+        
+        // Validate username if provided
+        val username = rtspUsername.first.value?.trim() ?: ""
+        rtspUsername.second.value = true // Empty username is allowed
+        
+        // Validate password if provided
+        val password = rtspPassword.first.value?.trim() ?: ""
+        rtspPassword.second.value = true // Empty password is allowed
+        
+        return true
     }
 
     fun saveDevice(): Boolean {
@@ -110,15 +143,22 @@ class DeviceEditorViewModel : ViewModelWithTools() {
             if (!it.valid())
                 return false
         }
+        if (!validateRtspUrl())
+            return false
 
         if (device == null) {
             device = Device(
+                xDigitsUUID(), // Generate a unique ID
                 if (deviceType.value == 0) null else availableDeviceTypes.get(deviceType.value!!).backingKey,
                 name.first.value!!,
                 if (address.first.value!!.startsWith("sip:") || address.first.value!!.startsWith("sips:")) address.first.value!! else "sip:${address.first.value}",
                 if (actionsMethod.value == 0) null else availableMethodTypes.get(actionsMethod.value!!).backingKey,
                 ArrayList(),
-                false
+                false,
+                // Save RTSP stream properties
+                rtspUrl.first.value ?: "",
+                rtspUsername.first.value ?: "",
+                rtspPassword.first.value ?: ""
             )
             actionsViewModels.forEach {
                 if (it.notEmpty())
@@ -139,6 +179,10 @@ class DeviceEditorViewModel : ViewModelWithTools() {
                 it.actionsMethodType =
                     if (actionsMethod.value == 0) null else availableMethodTypes.get(actionsMethod.value!!).backingKey
                 it.actions = ArrayList()
+                // Update RTSP stream properties
+                it.rtspStreamUrl = rtspUrl.first.value ?: ""
+                it.rtspStreamUsername = rtspUsername.first.value ?: ""
+                it.rtspStreamPassword = rtspPassword.first.value ?: ""
                 actionsViewModels.forEach { action ->
                     if (action.notEmpty())
                         it.actions?.add(

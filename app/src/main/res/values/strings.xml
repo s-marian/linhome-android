@@ -28,6 +28,10 @@
     <string name="settings_keep_screen_on">Keep screen on</string>
     <string name="settings_keep_screen_on_summary">Prevent device from sleeping when app is open</string>
     
+    <!-- Call buttons always visible setting -->
+    <string name="settings_call_buttons_always_visible">Always show call buttons</string>
+    <string name="settings_call_buttons_always_visible_summary">Keep call buttons visible during calls (disable tap to hide)</string>
+    
     <!-- RTSP Stream settings -->
     <string name="settings_rtsp_stream">RTSP Stream</string>
     <string name="settings_rtsp_stream_configure">Configure RTSP Stream</string>
@@ -48,4 +52,42 @@
     <string name="rtsp_stream_viewer_error">Failed to load RTSP stream</string>
     <string name="rtsp_stream_viewer_connecting">Connecting to stream...</string>
     <string name="rtsp_stream_viewer_disconnected">Stream disconnected</string>
+    
+    <!-- General settings -->
+    <string name="enable_ipv6">Enable IPv6</string>
+    <string name="media_encryption">Media Encryption</string>
+    <string name="enable_debuglogs">Enable debug logs</string>
+    <string name="clear_logs">Clear logs</string>
+    <string name="send_logs">Send logs</string>
+    <string name="settings_device_show_latest_snapshot">Show latest snapshot</string>
+    <string name="settings_background_mode">Background mode</string>
+    <string name="settings_background_mode_summary">Keep service running in background</string>
+    
+    <!-- Device and history -->
+    <string name="new_device">New device</string>
+    <string name="history_unregistered_device">Unregistered device</string>
+    
+    <!-- Device RTSP Stream Configuration -->
+    <string name="device_rtsp_stream">RTSP Stream</string>
+    <string name="device_rtsp_url">Stream URL</string>
+    <string name="device_rtsp_url_hint">rtsp://example.com/stream</string>
+    <string name="device_rtsp_username">Username (optional)</string>
+    <string name="device_rtsp_password">Password (optional)</string>
+    <string name="device_rtsp_hint">Configure RTSP stream for this device. When this device calls you, the RTSP stream will be shown in the call overlay.</string>
+    
+    <!-- Device Editor RTSP Stream Fields -->
+    <string name="rtsp_stream_settings">RTSP Stream Settings</string>
+    <string name="rtsp_url">Stream URL</string>
+    <string name="rtsp_url_hint">rtsp://example.com/stream</string>
+    <string name="rtsp_username">Username</string>
+    <string name="rtsp_username_hint">Enter RTSP username</string>
+    <string name="rtsp_password">Password</string>
+    <string name="rtsp_password_hint">Enter RTSP password</string>
+    
+    <!-- Device Fields -->
+    <string name="device_name">Device Name</string>
+    <string name="device_address">SIP Address</string>
+    <string name="device_address_hint">sip:device@example.com</string>
+    <string name="device_type_select">Select Device Type</string>
+    <string name="method_type_select">Select Method Type</string>
 </resources>
