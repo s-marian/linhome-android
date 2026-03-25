@@ -40,6 +40,16 @@ open class BaseActivity : GenericActivity(false) {
         }
     }
     
+    override fun onResume() {
+        super.onResume()
+        ScreenOnManager.onActivityResume(this)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        ScreenOnManager.onActivityPause(this)
+    }
+
     private fun applyImmersiveMode() {
         val corePreferences = CorePreferences(applicationContext)
         if (corePreferences.immersiveMode) {
