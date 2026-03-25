@@ -3,15 +3,10 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:bind="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-
-    >
-
+    xmlns:tools="http://schemas.android.com/tools">
 
     <data>
-
         <import type="android.view.View" />
-
         <variable
             name="callmodel"
             type="org.linhome.ui.call.CallViewModel" />
@@ -24,54 +19,50 @@
         android:fitsSystemWindows="true">
 
         <!-- Caller name at the top -->
-        <TextView
-            android:id="@+id/callerName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="48dp"
-            android:gravity="center"
-            android:textColor="@android:color/white"
-            android:textSize="28sp"
+        <TextureView
+            android:id="@+id/rtspVideoView"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:visibility="visible"
+            app:layout_constraintBottom_toTopOf="@id/buttonsContainer"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Device icon (phone icon) - hidden when RTSP stream is shown -->
         <TextView
-            android:id="@+id/deviceIcon"
+            android:id="@+id/callerName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="32dp"
             android:gravity="center"
-            android:text="📞"
-            android:textSize="80sp"
+            android:textColor="@android:color/white"
+            android:textSize="24sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/callerName" />
+            app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- RTSP Video Display (for RTSP stream overlay mode) -->
-        <TextureView
-            android:id="@+id/rtspVideoView"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:visibility="visible"
-            app:layout_constraintBottom_toTopOf="@id/buttonsContainer"
-            app:layout_constraintDimensionRatio="4:3"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/deviceIcon" />
-
-        <!-- Buttons container -->
+        <!-- Buttons container at the bottom -->
         <LinearLayout
             android:id="@+id/buttonsContainer"
-            android:layout_width="266dp"
-            android:layout_height="190dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginBottom="32dp"
             android:gravity="center"
             android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent">
+
+            <!-- Device icon (phone icon) - hidden when RTSP stream is shown -->
+            <TextView
+                android:id="@+id/deviceIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:gravity="center"
+                android:text="📞"
+                android:textSize="60sp" />
 
             <!-- Decline button -->
             <TextView
@@ -82,34 +73,34 @@
                 android:layout_weight="0"
                 android:background="@android:drawable/btn_default"
                 android:gravity="center"
-                android:paddingStart="24dp"
-                android:paddingTop="20dp"
-                android:paddingEnd="24dp"
-                android:paddingBottom="20dp"
+                android:paddingStart="20dp"
+                android:paddingTop="24dp"
+                android:paddingEnd="20dp"
+                android:paddingBottom="24dp"
                 android:text="X"
                 android:textColor="#FF0000"
-                android:textSize="34sp" />
+                android:textSize="30sp" />
 
             <!-- Answer button -->
             <TextView
                 android:id="@+id/answerButton"
                 android:layout_width="wrap_content"
-                android:layout_height="108dp"
+                android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
                 android:background="@android:drawable/btn_default"
-                android:drawableStart="@drawable/notification_phone"
+                android:drawableTop="@drawable/notification_phone"
                 android:drawablePadding="8dp"
                 android:drawableTint="@android:color/holo_green_dark"
                 android:gravity="center"
-                android:paddingStart="24dp"
-                android:paddingTop="20dp"
-                android:paddingEnd="24dp"
-                android:paddingBottom="20dp"
+                android:paddingStart="20dp"
+                android:paddingTop="24dp"
+                android:paddingEnd="20dp"
+                android:paddingBottom="24dp"
                 android:textColor="#00FF00"
                 android:textSize="16sp" />
-
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
 </layout>

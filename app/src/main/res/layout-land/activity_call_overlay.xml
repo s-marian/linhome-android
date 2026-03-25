@@ -19,6 +19,17 @@
         android:fitsSystemWindows="true">
 
         <!-- Caller name at the top -->
+        <TextureView
+            android:id="@+id/rtspVideoView"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <TextView
             android:id="@+id/callerName"
             android:layout_width="wrap_content"
@@ -32,38 +43,26 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <!-- Horizontal container for video and buttons -->
+
         <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_marginTop="16dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/callerName">
 
             <!-- RTSP Video Display (for RTSP stream overlay mode) -->
-            <TextureView
-                android:id="@+id/rtspVideoView"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:visibility="visible"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/buttonsContainer"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/callerName"
-                app:layout_constraintDimensionRatio="4:3" />
 
             <!-- Buttons container (vertical in landscape) -->
             <LinearLayout
                 android:id="@+id/buttonsContainer"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_width="100dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="16dp"
                 android:layout_weight="0.5"
                 android:gravity="center"
-                android:orientation="vertical"
-                android:layout_marginStart="16dp">
+                android:orientation="vertical">
 
                 <!-- Device icon (phone icon) - hidden when RTSP stream is shown -->
                 <TextView
@@ -78,7 +77,7 @@
                 <!-- Decline button -->
                 <TextView
                     android:id="@+id/declineButton"
-                    android:layout_width="108dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
                     android:background="@android:drawable/btn_default"
@@ -94,8 +93,8 @@
                 <!-- Answer button -->
                 <TextView
                     android:id="@+id/answerButton"
-                    android:layout_width="108dp"
-                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
                     android:layout_marginTop="8dp"
                     android:background="@android:drawable/btn_default"
                     android:drawableTop="@drawable/notification_phone"
@@ -110,5 +109,7 @@
                     android:textSize="16sp" />
             </LinearLayout>
         </LinearLayout>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
+
 </layout>
